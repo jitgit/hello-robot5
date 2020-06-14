@@ -10,8 +10,9 @@
 !/Include/devd/**
 !/Experts/devd-*.mq5
 
+
 !/Profiles/*
-!/Profiles/Templates/devd/**
+!/Profiles/Templates/devd/*.tpl
 
 
 !.gitignore
