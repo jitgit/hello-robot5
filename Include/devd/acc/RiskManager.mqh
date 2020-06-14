@@ -26,7 +26,7 @@ public:
         tickValue = tickValue;
         if (_Digits <= 3) //handling JPY
             tickValue = tickValue / 100;
-             log(StringFormat("Tick (Value :%f, Size :%f)", tickValue, tickSize));
+        log(StringFormat("Tick (Value :%f, Size :%f)", tickValue, tickSize));
         if (tickValue != 0)
         {
 

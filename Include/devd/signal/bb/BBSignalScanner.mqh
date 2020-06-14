@@ -30,9 +30,9 @@ protected:
                                int amount              // number of copied values
     )
     {
-         ArraySetAsSeries(base_values,true);
-         ArraySetAsSeries(upper_values,true);
-         ArraySetAsSeries(lower_values,true);
+        ArraySetAsSeries(base_values, true);
+        ArraySetAsSeries(upper_values, true);
+        ArraySetAsSeries(lower_values, true);
         ResetLastError();
         if (CopyBuffer(ind_handle, 0, -shift, amount, base_values) < 0)
         {
@@ -88,7 +88,6 @@ public:
         double takeProfitLower = optimizedShortTP();
         debug(StringFormat("BB TakeProfit (%f, %f, %f)", takeProfitLower, commonMid, takeProfitUpper));
 
-        
         double rsiBuffer[];
         int rsi_handle = iRSI(_Symbol, _Period, itsRSIPeriod, PRICE_CLOSE);
         CopyBuffer(rsi_handle, 0, 0, 3, rsiBuffer);

@@ -10,26 +10,30 @@
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-int OnInit() {
+int OnInit()
+{
    return (INIT_SUCCEEDED);
 }
 
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void OnDeinit(const int reason) {
+void OnDeinit(const int reason)
+{
 }
 
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void printAverageAngle(double &array[], datetime &tm[], string arrayName) {
+void printAverageAngle(double &array[], datetime &tm[], string arrayName)
+{
    Print(arrayName, " - valueArray :", ArraySize(array), " TimeArray :", ArraySize(tm));
    int x = 0;
    double totalAngle = 0;
    int arraySize = ArraySize(array);
-   for (int i = arraySize - 1; i >= 1; i--) {
-      int x1 = x;//tm[i];
+   for (int i = arraySize - 1; i >= 1; i--)
+   {
+      int x1 = x;     //tm[i];
       int x2 = x + 1; //tm[i-1];
       double y1 = array[i];
       double y2 = array[i - 1];
@@ -43,7 +47,8 @@ void printAverageAngle(double &array[], datetime &tm[], string arrayName) {
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-void OnStart() {
+void OnStart()
+{
    double tenkansenBuffer[];
    double kijunsenBuffer[];
    double senkouSpanABuffer[];
@@ -66,19 +71,18 @@ void OnStart() {
    CopyBuffer(ichimokuHandle, 2, aheadCloudDelta, amount, senkouSpanABuffer);
    CopyBuffer(ichimokuHandle, 3, aheadCloudDelta, amount, senkouSpanBBuffer);
 
-
    datetime tm[]; // array storing the returned bar time
    ArraySetAsSeries(tm, true);
    CopyTime(_Symbol, _Period, 0, 1, tm); //Getting the current candle time
 
-//Calculating the time line based on requested bar
+   //Calculating the time line based on requested bar
    datetime timeSeries[];
    ArrayResize(timeSeries, amount);
-   for (int i = 0; i < amount;  i++) {
-      timeSeries[i] = tm[0] + ((PeriodSeconds(_Period) * (i - barBeforeCurrent + 1))) ;
+   for (int i = 0; i < amount; i++)
+   {
+      timeSeries[i] = tm[0] + ((PeriodSeconds(_Period) * (i - barBeforeCurrent + 1)));
    }
    ArraySetAsSeries(timeSeries, true);
-
 
    /*for (int i = ArraySize(senkouSpanABuffer) - 1; i >= 0; i--) {
       PrintFormat(timeSeries[i] + " (%f , %f)", senkouSpanABuffer[i], senkouSpanBBuffer[i]);
@@ -86,14 +90,14 @@ void OnStart() {
    printAverageAngle(senkouSpanABuffer, timeSeries, "Span A");
    printAverageAngle(senkouSpanBBuffer, timeSeries, "Span B");
 
-//ArrayPrint(tenkansenBuffer);
-//ArrayPrint(kijunsenBuffer);
-//ArrayPrint(senkouSpanABuffer);
-//ArrayPrint(senkouSpanBBuffer);
+   //ArrayPrint(tenkansenBuffer);
+   //ArrayPrint(kijunsenBuffer);
+   //ArrayPrint(senkouSpanABuffer);
+   //ArrayPrint(senkouSpanBBuffer);
 
-//Print("Tenkan Sen ::: : "+ norm(tenkansenBuffer[0]));
-//Print("Kijua Sen ::: "+ kijunsenBuffer[0]);
-//Print("Span A ::: "+ senkouSpanABuffer[0]);
-//Print("Span B ::: "+ senkouSpanBBuffer[0]);
+   //Print("Tenkan Sen ::: : "+ norm(tenkansenBuffer[0]));
+   //Print("Kijua Sen ::: "+ kijunsenBuffer[0]);
+   //Print("Span A ::: "+ senkouSpanABuffer[0]);
+   //Print("Span B ::: "+ senkouSpanBBuffer[0]);
 }
 //+------------------------------------------------------------------+
