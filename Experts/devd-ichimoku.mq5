@@ -13,6 +13,11 @@ public:
    {
       return StringFormat("flatCount(%d), averageAngle (%f)", flatCount, avgAngle);
    }
+   KumoSpan()
+   {
+      flatCount = 0;
+      avgAngle = 0;
+   }
 };
 
 class Kumo
@@ -31,27 +36,54 @@ public:
    }
 };
 
+class KumoParam
+{
+public:
+   ENUM_TIMEFRAMES timeFrame;
+   int totalHistory;
+   int ichimokuHandle;
+
+   KumoParam(ENUM_TIMEFRAMES tf)
+   {
+      timeFrame = tf;
+      totalHistory = 100; //We take an appx. number of candle in which a kumo flip can be found
+   }
+};
+
 void OnStart()
 {
+   KumoParam *h4Param = new KumoParam(_Period);
+   Kumo *h4Kumo = buildKumo(h4Param);
 
-   //We take an appx. number of candle in which a kumo flip can be found
-   int ichimokuHandle = iIchimoku(_Symbol, _Period, 9, 26, 52);
-   int totalHistory = 200;
+   /*KumoParam* h1Param = new KumoParam(PERIOD_H1);
+   Kumo* h1Kumo = buildKumo(h1Param);
+   
+   KumoParam* m5Param = new KumoParam(PERIOD_M5);
+   Kumo* m5Kumo = buildKumo(m5Param);
+   
+   KumoParam* m1Param = new KumoParam(PERIOD_M1);
+   Kumo* m1Kumo = buildKumo(m1Param);*/
+}
+
+Kumo *buildKumo(KumoParam &kumoParam)
+{
+
+   kumoParam.ichimokuHandle = iIchimoku(_Symbol, kumoParam.timeFrame, 9, 26, 52);
 
    Kumo *kumpBeforeCurrentTS = new Kumo();
-   addPreviousKumo(totalHistory, kumpBeforeCurrentTS, ichimokuHandle);
+   addPreviousKumo(kumoParam, kumpBeforeCurrentTS);
 
-   Kumo *futureKumo = futureKumoInfo(ichimokuHandle);
+   Kumo *futureKumo = futureKumoInfo(kumoParam);
 
    Kumo *totalKumo = mergePreviousAndFutureKumo(kumpBeforeCurrentTS, futureKumo);
 
-   findKumoFlip(totalHistory, totalKumo);
+   findKumoFlip(kumoParam.totalHistory, totalKumo);
 
    addFlatKumoBarCountAndAngle(totalKumo);
 
-   PrintFormat("================================================================");
-
+   Print("=============================", PeriodSeconds(kumoParam.timeFrame) / 60, "(m)=================================");
    printKumo(totalKumo);
+   return totalKumo;
 }
 
 void addFlatKumoBarCountAndAngle(Kumo &k)
@@ -91,23 +123,21 @@ void printAverageAngle(KumoSpan *span, datetime &tm[], string arrayName, int fli
    // PrintFormat("%s - Avg Angle: %f", arrayName, (totalAngle / (arraySize - 1)) * 1000); //TODO not sure *10000
 }
 
-void addPreviousKumo(int totalHistory, Kumo &k, int ichimokuHandle)
+void addPreviousKumo(KumoParam &kumoParam, Kumo &k)
 {
 
-   datetime currentCandleTS = getCurrentCandleTS();
+   datetime currentCandleTS = getCurrentCandleTS(kumoParam);
 
    //Copy Previous TS/SpanAB values
    ArraySetAsSeries(k.spanA.values, true);
    ArraySetAsSeries(k.spanB.values, true);
    ArraySetAsSeries(k.ts, true);
-   CopyBuffer(ichimokuHandle, 2, 0, totalHistory, k.spanA.values);
-   CopyBuffer(ichimokuHandle, 3, 0, totalHistory, k.spanB.values);
-   CopyTime(_Symbol, _Period, currentCandleTS, totalHistory, k.ts);
-
-   PrintFormat("currentCandleTS: " + currentCandleTS);
+   CopyBuffer(kumoParam.ichimokuHandle, 2, 0, kumoParam.totalHistory, k.spanA.values);
+   CopyBuffer(kumoParam.ichimokuHandle, 3, 0, kumoParam.totalHistory, k.spanB.values);
+   CopyTime(_Symbol, kumoParam.timeFrame, currentCandleTS, kumoParam.totalHistory, k.ts);
 }
 
-Kumo *futureKumoInfo(int ichimokuHandle)
+Kumo *futureKumoInfo(KumoParam &kumoParam)
 {
    Kumo *r = new Kumo();
 
@@ -118,14 +148,14 @@ Kumo *futureKumoInfo(int ichimokuHandle)
    ArraySetAsSeries(r.ts, true);
    ArrayResize(r.ts, totalCandles);
 
-   CopyBuffer(ichimokuHandle, 2, aheadCloudDelta, totalCandles, r.spanA.values);
-   CopyBuffer(ichimokuHandle, 3, aheadCloudDelta, totalCandles, r.spanB.values);
+   CopyBuffer(kumoParam.ichimokuHandle, 2, aheadCloudDelta, totalCandles, r.spanA.values);
+   CopyBuffer(kumoParam.ichimokuHandle, 3, aheadCloudDelta, totalCandles, r.spanB.values);
 
    //Future TS needs to manually calculated, CopyTime doesn't work. TODO Exclude weekend
-   datetime currentCandleTS = getCurrentCandleTS();
+   datetime currentCandleTS = getCurrentCandleTS(kumoParam);
    for (int i = totalCandles - 1; i >= 0; i--)
    {
-      r.ts[i] = currentCandleTS + (PeriodSeconds(_Period) * (totalCandles - i));
+      r.ts[i] = currentCandleTS + (PeriodSeconds(kumoParam.timeFrame) * (totalCandles - i));
    }
 
    return r;
@@ -142,15 +172,12 @@ void findKumoFlip(int totalHistory, Kumo &k)
    {
       if ((pA > pB && k.spanA.values[i] < k.spanB.values[i]) || (pA < pB && k.spanA.values[i] > k.spanB.values[i]))
       {
-
-         //PrintFormat(i + ". " + k.ts[i] + " (%f , %f)", k.spanA[i], k.spanB[i]);
+         //PrintFormat(i + ". " + k.ts[i] + " (%f , %f)", k.spanA.values[i], k.spanB.values[i]);
          //PrintFormat(i + ". " + k.ts[i] + " PA(%f), PB(%f)", pA, pB);
          int flipIndex = MathMin(i, arrayLength - 1);
          k.flipTSIndex = flipIndex;
-         if (i >= 10)
-         {
+         if (i >= 13) //Atleast us 13 candles (half of future cloud)
             break;
-         }
       }
       pA = k.spanA.values[i];
       pB = k.spanB.values[i];
@@ -187,20 +214,18 @@ Kumo *mergePreviousAndFutureKumo(Kumo &previous, Kumo *future)
 
 void printKumo(Kumo *k)
 {
-   for (int i = ArraySize(k.spanA.values) - 1; i >= 0; i--)
-   {
-      // PrintFormat(k.ts[i] + " (%f , %f)", k.spanA[i], k.spanB[i]);
-   }
-   PrintFormat("Total TS(%d), Flip TS(%s)", ArraySize(k.spanA.values));
-   PrintFormat("Kumo: size(%d), range [%s ,%s]", k.flipTSIndex, tsMin(k.ts[k.flipTSIndex]), tsMin(k.ts[0]));
+   //for (int i = ArraySize(k.spanA.values) - 1; i >= 0; i--)  PrintFormat(k.ts[i] + " (%f , %f)", k.spanA[i], k.spanB[i]);
+
+   PrintFormat("Total TS(%d), FlipIndex(%d)", ArraySize(k.spanA.values), k.flipTSIndex);
+   PrintFormat("Kumo: size(%d), range [%s ,%s]", k.flipTSIndex, tsDate(k.ts[k.flipTSIndex]), tsDate(k.ts[0]));
    PrintFormat("SpanA[%s]", k.spanA.str());
    PrintFormat("SpanB[%s]", k.spanB.str());
 }
 
-datetime getCurrentCandleTS()
+datetime getCurrentCandleTS(KumoParam &kumoParam)
 {
    datetime tm[]; // array storing the returned bar time
    ArraySetAsSeries(tm, true);
-   CopyTime(_Symbol, _Period, 0, 1, tm); //Getting the current candle time
+   CopyTime(_Symbol, kumoParam.timeFrame, 0, 1, tm); //Getting the current candle time
    return tm[0];
 }

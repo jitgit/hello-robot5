@@ -1,12 +1,12 @@
 #property strict
 
-#include <devd/common.mqh>
-#include <devd/account-utils.mqh>
-#include <devd/signal/bb/BBSignalScanner.mqh>
-#include <devd/order/OrderManager.mqh>
-#include <devd/order/OrderOptimizer.mqh>
 #include <devd/acc/AccountManager.mqh>
 #include <devd/acc/RiskManager.mqh>
+#include <devd/account-utils.mqh>
+#include <devd/common.mqh>
+#include <devd/order/OrderManager.mqh>
+#include <devd/order/OrderOptimizer.mqh>
+#include <devd/signal/bb/BBSignalScanner.mqh>
 
 input int MAX_ORDER_THREADHOLD = 1;
 input double BB_SD_ENTRY = 2;

@@ -32,3 +32,8 @@ string tsMin(datetime dt)
 {
     return TimeToString(dt, TIME_MINUTES);
 }
+
+string tsDate(datetime dt)
+{
+    return StringFormat("%s %s", TimeToString(dt, TIME_DATE), tsMin(dt));
+}
