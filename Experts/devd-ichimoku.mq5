@@ -8,22 +8,29 @@
 #property version "1.00"
 #include <devd/common.mqh>
 
+class KumoSpan{
+public:
+   double            values[];
+   int flatCount;//Number of TS when non change between TS
+   double avgAngle;
+   string str()
+    {
+        return StringFormat("flatCount(%d), averageAngle (%f)", flatCount, avgAngle);
+    }
+};
 
 class Kumo {
-public:
+public:   
+   KumoSpan* spanA;
+   KumoSpan* spanB;   
    
-   double            spanA[];
-   double            spanB[];
    datetime          ts[];
+   int flipTSIndex; //Index of above TS when most recently cloud flips - 1, This can be array as well.
    
-   //Number of TS when non change between TS
-   int               spanAFlatCount;   
-   int               spanBFlatCount; 
-   
-   
-   datetime          flipTS; //TS when most recently cloud flips - 1, This can be array as well.
-   int flipTSIndex; //Index of above TS
-   
+   Kumo(){
+   spanA = new KumoSpan();
+   spanB = new KumoSpan();
+   }
 
 };
 
@@ -52,36 +59,37 @@ void OnStart() {
 }
 
 void addFlatKumoBarCountAndAngle(Kumo &k){
-   printAverageAngle(k.spanA,k.ts,"Span A", k.flipTSIndex, k.spanAFlatCount);
-   printAverageAngle(k.spanB,k.ts,"Span B", k.flipTSIndex, k.spanBFlatCount);
+   printAverageAngle(k.spanA,k.ts,"Span A", k.flipTSIndex);
+   printAverageAngle(k.spanB,k.ts,"Span B", k.flipTSIndex);
 }
 
-void printAverageAngle(double &array[], datetime &tm[], string arrayName, int flipTSIndex, int &flatCount) {
-   int arraySize = ArraySize(array);
+void printAverageAngle(KumoSpan*  span, datetime &tm[], string arrayName, int flipTSIndex) {
+   int arraySize = ArraySize(span.values);
    
-   Print(arrayName, " - valueArray :", arraySize, ", TimeArray :", ArraySize(tm), ", flipTSIndex :" , flipTSIndex);
+   // Print(arrayName, " - valueArray :", arraySize, ", TimeArray :", ArraySize(tm), ", flipTSIndex :" , flipTSIndex);
    int x = 0;
    double totalAngle = 0;
    
    datetime xOriginShift = tm[arraySize - 1];
-   double yOriginShift = array[arraySize - 1];
+   double yOriginShift = span.values[arraySize - 1];
    for (int i = flipTSIndex+1; i >= 1; i--) {
       int x1 = tm[i] - xOriginShift;
       int x2 = tm[i - 1] - xOriginShift;
-      double y1 = array[i];//(MathPow(10, _Digits) * array[i]) - yOriginShift;
-      double y2 = array[i-1];//(MathPow(10, _Digits) * array[i - 1]) - yOriginShift;
+      double y1 = span.values[i];//(MathPow(10, _Digits) * array[i]) - yOriginShift;
+      double y2 = span.values[i-1];//(MathPow(10, _Digits) * array[i - 1]) - yOriginShift;
       double angle = MathTanh((y2 - y1) / (x2 - x1));
       
       
       if(y1 == y2 ){ //Collecting how many time the curve is flat
          // PrintFormat(tm[i] + " P2(%f,%f) "+tm[i-1]+ " P1(%f,%f) , Angle: %f ", x2, y2, x1, y1, angle);
-         flatCount = flatCount +1;
+         span.flatCount = span.flatCount +1;
        }      
       
       totalAngle += angle;
       x++;
    }
-   PrintFormat("%s - Avg Angle: %f", arrayName, (totalAngle / (arraySize - 1)) * 1000); //TODO not sure *10000
+   span.avgAngle = totalAngle;
+   // PrintFormat("%s - Avg Angle: %f", arrayName, (totalAngle / (arraySize - 1)) * 1000); //TODO not sure *10000
 }
 
 
@@ -90,11 +98,11 @@ void addPreviousKumo(int totalHistory, Kumo &k, int ichimokuHandle) {
    datetime currentCandleTS = getCurrentCandleTS();
 
 //Copy Previous TS/SpanAB values
-   ArraySetAsSeries(k.spanA, true);
-   ArraySetAsSeries(k.spanB, true);
+   ArraySetAsSeries(k.spanA.values, true);
+   ArraySetAsSeries(k.spanB.values, true);
    ArraySetAsSeries(k.ts, true);
-   CopyBuffer(ichimokuHandle, 2, 0, totalHistory, k.spanA);
-   CopyBuffer(ichimokuHandle, 3, 0, totalHistory, k.spanB);
+   CopyBuffer(ichimokuHandle, 2, 0, totalHistory, k.spanA.values);
+   CopyBuffer(ichimokuHandle, 3, 0, totalHistory, k.spanB.values);
    CopyTime(_Symbol, _Period, currentCandleTS, totalHistory, k.ts);
 
    PrintFormat("currentCandleTS: " + currentCandleTS);
@@ -107,13 +115,13 @@ Kumo* futureKumoInfo(int ichimokuHandle) {
     
    int aheadCloudDelta = -26; //As kumo cloud has 26 bar more values
    int totalCandles = MathAbs(aheadCloudDelta);
-   ArraySetAsSeries(r.spanA, true);
-   ArraySetAsSeries(r.spanB, true);
+   ArraySetAsSeries(r.spanA.values, true);
+   ArraySetAsSeries(r.spanB.values, true);
    ArraySetAsSeries(r.ts, true);
    ArrayResize(r.ts, totalCandles);
 
-   CopyBuffer(ichimokuHandle, 2, aheadCloudDelta, totalCandles, r.spanA);
-   CopyBuffer(ichimokuHandle, 3, aheadCloudDelta, totalCandles, r.spanB);
+   CopyBuffer(ichimokuHandle, 2, aheadCloudDelta, totalCandles, r.spanA.values);
+   CopyBuffer(ichimokuHandle, 3, aheadCloudDelta, totalCandles, r.spanB.values);
 
    //Future TS needs to manually calculated, CopyTime doesn't work. TODO Exclude weekend
    datetime currentCandleTS = getCurrentCandleTS();   
@@ -126,26 +134,25 @@ Kumo* futureKumoInfo(int ichimokuHandle) {
 
 
 void findKumoFlip(int totalHistory, Kumo &k) {
-   int arrayLength = ArraySize(k.spanA);
+   int arrayLength = ArraySize(k.spanA.values);
 
-   k.flipTS = k.ts[arrayLength - 1];
-   double  pA = k.spanA[0];
-   double pB = k.spanB[0];
+   k.flipTSIndex = arrayLength - 1;
+   double  pA = k.spanA.values[0];
+   double pB = k.spanB.values[0];
    for (int i = 0; i < arrayLength; i++) {
-      if((pA > pB && k.spanA[i] < k.spanB[i])
-            || (pA < pB && k.spanA[i] > k.spanB[i])) {
+      if((pA > pB && k.spanA.values[i] < k.spanB.values[i])
+            || (pA < pB && k.spanA.values[i] > k.spanB.values[i])) {
 
          //PrintFormat(i + ". " + k.ts[i] + " (%f , %f)", k.spanA[i], k.spanB[i]);
          //PrintFormat(i + ". " + k.ts[i] + " PA(%f), PB(%f)", pA, pB);
          int flipIndex = MathMin(i, arrayLength - 1);
-         k.flipTS  =  k.ts[flipIndex];
          k.flipTSIndex =flipIndex;
          if(i >= 10) {
             break;
          }
       }
-      pA = k.spanA[i];
-      pB = k.spanB[i];
+      pA = k.spanA.values[i];
+      pB = k.spanB.values[i];
    }
 }
 
@@ -153,25 +160,25 @@ void findKumoFlip(int totalHistory, Kumo &k) {
 Kumo* mergePreviousAndFutureKumo(Kumo &previous, Kumo *future) {
    Kumo* r = new Kumo();
 
-   r.flipTS = previous.flipTS;
+   r.flipTSIndex = previous.flipTSIndex;
 
-   int totalLength = ArraySize(previous.spanA) + ArraySize(future.spanA);
-   ArrayResize(r.spanA, totalLength);
-   ArrayResize(r.spanB, totalLength);
+   int totalLength = ArraySize(previous.spanA.values) + ArraySize(future.spanA.values);
+   ArrayResize(r.spanA.values, totalLength);
+   ArrayResize(r.spanB.values, totalLength);
    ArrayResize(r.ts, totalLength);
 
-   ArraySetAsSeries(r.spanA, true);
-   ArraySetAsSeries(r.spanB, true);
+   ArraySetAsSeries(r.spanA.values, true);
+   ArraySetAsSeries(r.spanB.values, true);
    ArraySetAsSeries(r.ts, true);
 
-   int futureArraySize = ArraySize(future.spanA);
+   int futureArraySize = ArraySize(future.spanA.values);
 
-   ArrayCopy(r.spanA, future.spanA, 0, 0, futureArraySize);
-   ArrayCopy(r.spanB, future.spanB, 0, 0, futureArraySize);
+   ArrayCopy(r.spanA.values, future.spanA.values, 0, 0, futureArraySize);
+   ArrayCopy(r.spanB.values, future.spanB.values, 0, 0, futureArraySize);
    ArrayCopy(r.ts, future.ts, 0, 0, futureArraySize);
 
-   ArrayCopy(r.spanA, previous.spanA, futureArraySize, 0, ArraySize(previous.spanA));
-   ArrayCopy(r.spanB, previous.spanB, futureArraySize, 0, ArraySize(previous.spanB));
+   ArrayCopy(r.spanA.values, previous.spanA.values, futureArraySize, 0, ArraySize(previous.spanA.values));
+   ArrayCopy(r.spanB.values, previous.spanB.values, futureArraySize, 0, ArraySize(previous.spanB.values));
    ArrayCopy(r.ts, previous.ts, futureArraySize, 0, ArraySize(previous.ts));   
 
    return r;
@@ -179,12 +186,13 @@ Kumo* mergePreviousAndFutureKumo(Kumo &previous, Kumo *future) {
 
 
 void printKumo(Kumo * k) {
-   for (int i = ArraySize(k.spanA) - 1; i >= 0; i--) {
+   for (int i = ArraySize(k.spanA.values) - 1; i >= 0; i--) {
      // PrintFormat(k.ts[i] + " (%f , %f)", k.spanA[i], k.spanB[i]);
    }
-   PrintFormat("Total TS(%d),  Flip TS :(%s)", ArraySize(k.spanA), tsMin(k.flipTS));
-   PrintFormat("Kumo Length (%d),FlatA(%d), FlatB(%d)",k.flipTSIndex, k.spanAFlatCount,k.spanBFlatCount);
-   PrintFormat("Kumo Pick (%s)",tsMin(k.ts[0]));
+   PrintFormat("Total TS(%d), Flip TS(%s)", ArraySize(k.spanA.values));
+   PrintFormat("Kumo: size(%d),Range [%s ,%s]",k.flipTSIndex, tsMin(k.ts[k.flipTSIndex]), tsMin(k.ts[0]));
+   PrintFormat("SpanA[%s]", k.spanA.str());
+   PrintFormat("SpanB[%s]",k.spanB.str());
    
 }
 
