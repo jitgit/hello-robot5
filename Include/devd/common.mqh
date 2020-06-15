@@ -6,17 +6,11 @@
 input bool DEBUG_INFO = true;
 input bool WARN_INFO = true;
 
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
 void log(string s)
 {
     Print("INFO - " + s);
 }
 
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
 void debug(string s)
 {
     if (DEBUG_INFO)
@@ -36,5 +30,10 @@ void warn(string s)
 double norm(double d)
 {
     return NormalizeDouble(d, _Digits);
+}
+
+string tsMin(datetime dt)
+{
+    return TimeToString(dt, TIME_MINUTES);
 }
 //+------------------------------------------------------------------+

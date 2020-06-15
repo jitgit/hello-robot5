@@ -7,32 +7,6 @@
 #property link "https://www.devd.com"
 #property version "1.00"
 #include <devd/common.mqh>
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
-void printAverageAngle(double &array[], datetime &tm[], string arrayName) {
-   Kumo* result = new Kumo();
-// Print(arrayName, " - valueArray :", ArraySize(array), " TimeArray :", ArraySize(tm));
-   int x = 0;
-   double totalAngle = 0;
-   int arraySize = ArraySize(array);
-   datetime xOriginShift = tm[arraySize - 1];
-   double yOriginShift = array[arraySize - 1];
-   for (int i = arraySize - 1; i >= 1; i--) {
-      int x1 = tm[i] - xOriginShift;
-      int x2 = tm[i - 1] - xOriginShift;
-      double y1 = (MathPow(10, _Digits) * array[i]) - yOriginShift;
-      double y2 = (MathPow(10, _Digits) * array[i - 1]) - yOriginShift;
-      double angle = MathTanh((y2 - y1) / (x2 - x1));
-      //PrintFormat(tm[i] + " P2(%f,%f) , P1(%f,%f) , Angle: %f ", x2, y2, x1, y1, angle);
-      totalAngle += angle;
-      x++;
-   }
-   PrintFormat("%s - Avg Angle: %f", arrayName, (totalAngle / (arraySize - 1)) * 1000); //TODO not sure *10000
-}
 
 
 class Kumo {
@@ -42,103 +16,96 @@ public:
    double            spanB[];
    datetime          ts[];
    
-   int               flatCount;   
+   //Number of TS when non change between TS
+   int               spanAFlatCount;   
+   int               spanBFlatCount; 
+   
+   
    datetime          flipTS; //TS when most recently cloud flips - 1, This can be array as well.
+   int flipTSIndex; //Index of above TS
    
 
 };
-
-datetime getCurrentCandleTS() {
-   datetime tm[]; // array storing the returned bar time
-   ArraySetAsSeries(tm, true);
-   CopyTime(_Symbol, _Period, 0, 1, tm); //Getting the current candle time
-   return tm[0];
-}
-
 
 void OnStart() {
 
 
    //We take an appx. number of candle in which a kumo flip can be found
-   int barBeforeCurrent = 200;
-   Kumo* kumpBeforeCurrentTS = new Kumo();
-   addPreviousKumo(barBeforeCurrent, kumpBeforeCurrentTS);
+   int ichimokuHandle= iIchimoku(_Symbol, _Period, 9, 26, 52);
+   int totalHistory = 200;
+   
+   Kumo* kumpBeforeCurrentTS = new Kumo();   
+   addPreviousKumo(totalHistory, kumpBeforeCurrentTS,ichimokuHandle);
 
-
-   Kumo* futureKumo = futureKumoInfo();
+   Kumo* futureKumo = futureKumoInfo(ichimokuHandle);
    
    Kumo* totalKumo = mergePreviousAndFutureKumo(kumpBeforeCurrentTS, futureKumo);
    
-   findKumoFlip(barBeforeCurrent, totalKumo);
-   PrintFormat("================================================================");
+   findKumoFlip(totalHistory, totalKumo);
+   
+   addFlatKumoBarCountAndAngle(totalKumo);
+   
+   PrintFormat("================================================================");   
    
    printKumo(totalKumo);
    
+}
 
-   /*double tenkansenBuffer[];
-   double kijunsenBuffer[];
+void addFlatKumoBarCountAndAngle(Kumo &k){
+   printAverageAngle(k.spanA,k.ts,"Span A", k.flipTSIndex, k.spanAFlatCount);
+   printAverageAngle(k.spanB,k.ts,"Span B", k.flipTSIndex, k.spanBFlatCount);
+}
 
-   int ichimokuHandle = iIchimoku(_Symbol, _Period, 9, 26, 52);
-   ArraySetAsSeries(tenkansenBuffer, true);
-   ArraySetAsSeries(kijunsenBuffer, true);
-
-   int aheadCloudDelta = -16; //Constant number of bar, Cloud will be ahead of the latest price
-   int barBeforeCurrent = 3;
-   int totalCandles = MathAbs(aheadCloudDelta) + barBeforeCurrent;
-   CopyBuffer(ichimokuHandle, 0, 0, totalCandles + barBeforeCurrent, tenkansenBuffer);
-   CopyBuffer(ichimokuHandle, 1, 0, totalCandles + barBeforeCurrent, kijunsenBuffer);
-
-   */
-
-
-   /*
-
-
-   printKumo(k);
-
-   printAverageAngle(k.spanA, k.ts, "Span A");
-   printAverageAngle(k.spanB, k.ts, "Span B");
-   */
-
-
-
-
-//ArrayPrint(tenkansenBuffer);
-//ArrayPrint(kijunsenBuffer);
-//ArrayPrint(spanA);
-//ArrayPrint(spanB);
-
-//Print("Tenkan Sen ::: : "+ norm(tenkansenBuffer[0]));
-//Print("Kijua Sen ::: "+ kijunsenBuffer[0]);
-//Print("Span A ::: "+ spanA[0]);
-//Print("Span B ::: "+ spanB[0]);
+void printAverageAngle(double &array[], datetime &tm[], string arrayName, int flipTSIndex, int &flatCount) {
+   int arraySize = ArraySize(array);
+   
+   Print(arrayName, " - valueArray :", arraySize, ", TimeArray :", ArraySize(tm), ", flipTSIndex :" , flipTSIndex);
+   int x = 0;
+   double totalAngle = 0;
+   
+   datetime xOriginShift = tm[arraySize - 1];
+   double yOriginShift = array[arraySize - 1];
+   for (int i = flipTSIndex+1; i >= 1; i--) {
+      int x1 = tm[i] - xOriginShift;
+      int x2 = tm[i - 1] - xOriginShift;
+      double y1 = array[i];//(MathPow(10, _Digits) * array[i]) - yOriginShift;
+      double y2 = array[i-1];//(MathPow(10, _Digits) * array[i - 1]) - yOriginShift;
+      double angle = MathTanh((y2 - y1) / (x2 - x1));
+      
+      
+      if(y1 == y2 ){ //Collecting how many time the curve is flat
+         // PrintFormat(tm[i] + " P2(%f,%f) "+tm[i-1]+ " P1(%f,%f) , Angle: %f ", x2, y2, x1, y1, angle);
+         flatCount = flatCount +1;
+       }      
+      
+      totalAngle += angle;
+      x++;
+   }
+   PrintFormat("%s - Avg Angle: %f", arrayName, (totalAngle / (arraySize - 1)) * 1000); //TODO not sure *10000
 }
 
 
-void addPreviousKumo(int barBeforeCurrent, Kumo &k) {
+void addPreviousKumo(int totalHistory, Kumo &k, int ichimokuHandle) {
 
    datetime currentCandleTS = getCurrentCandleTS();
-   int ichimokuHandle = iIchimoku(_Symbol, _Period, 9, 26, 52);
-
 
 //Copy Previous TS/SpanAB values
    ArraySetAsSeries(k.spanA, true);
    ArraySetAsSeries(k.spanB, true);
    ArraySetAsSeries(k.ts, true);
-   CopyBuffer(ichimokuHandle, 2, 0, barBeforeCurrent, k.spanA);
-   CopyBuffer(ichimokuHandle, 3, 0, barBeforeCurrent, k.spanB);
-   CopyTime(_Symbol, _Period, currentCandleTS, barBeforeCurrent, k.ts);
+   CopyBuffer(ichimokuHandle, 2, 0, totalHistory, k.spanA);
+   CopyBuffer(ichimokuHandle, 3, 0, totalHistory, k.spanB);
+   CopyTime(_Symbol, _Period, currentCandleTS, totalHistory, k.ts);
 
    PrintFormat("currentCandleTS: " + currentCandleTS);
 }
 
 
 
-Kumo* futureKumoInfo() {
+Kumo* futureKumoInfo(int ichimokuHandle) {
    Kumo* r = new Kumo();
-
-   int ichimokuHandle = iIchimoku(_Symbol, _Period, 9, 26, 52);
-   int aheadCloudDelta = -26; //Constant number of bar, Cloud will be ahead of the latest price
+    
+   int aheadCloudDelta = -26; //As kumo cloud has 26 bar more values
    int totalCandles = MathAbs(aheadCloudDelta);
    ArraySetAsSeries(r.spanA, true);
    ArraySetAsSeries(r.spanB, true);
@@ -148,10 +115,8 @@ Kumo* futureKumoInfo() {
    CopyBuffer(ichimokuHandle, 2, aheadCloudDelta, totalCandles, r.spanA);
    CopyBuffer(ichimokuHandle, 3, aheadCloudDelta, totalCandles, r.spanB);
 
-
-   datetime currentCandleTS = getCurrentCandleTS();
-
-//Future TS needs to manually calculated, CopyTime doesn't work. TODO Exclude weekend
+   //Future TS needs to manually calculated, CopyTime doesn't work. TODO Exclude weekend
+   datetime currentCandleTS = getCurrentCandleTS();   
    for (int i = totalCandles - 1; i >= 0; i--) {
       r.ts[i] = currentCandleTS + (PeriodSeconds(_Period) * (totalCandles - i ));
    }
@@ -160,7 +125,7 @@ Kumo* futureKumoInfo() {
 }
 
 
-void findKumoFlip(int barBeforeCurrent, Kumo &k) {
+void findKumoFlip(int totalHistory, Kumo &k) {
    int arrayLength = ArraySize(k.spanA);
 
    k.flipTS = k.ts[arrayLength - 1];
@@ -172,8 +137,9 @@ void findKumoFlip(int barBeforeCurrent, Kumo &k) {
 
          //PrintFormat(i + ". " + k.ts[i] + " (%f , %f)", k.spanA[i], k.spanB[i]);
          //PrintFormat(i + ". " + k.ts[i] + " PA(%f), PB(%f)", pA, pB);
-
-         k.flipTS  =  k.ts[MathMin(i, arrayLength - 1)];
+         int flipIndex = MathMin(i, arrayLength - 1);
+         k.flipTS  =  k.ts[flipIndex];
+         k.flipTSIndex =flipIndex;
          if(i >= 10) {
             break;
          }
@@ -206,18 +172,25 @@ Kumo* mergePreviousAndFutureKumo(Kumo &previous, Kumo *future) {
 
    ArrayCopy(r.spanA, previous.spanA, futureArraySize, 0, ArraySize(previous.spanA));
    ArrayCopy(r.spanB, previous.spanB, futureArraySize, 0, ArraySize(previous.spanB));
-   ArrayCopy(r.ts, previous.ts, futureArraySize, 0, ArraySize(previous.ts));
-
-   printKumo(r);
+   ArrayCopy(r.ts, previous.ts, futureArraySize, 0, ArraySize(previous.ts));   
 
    return r;
-
 }
 
 
 void printKumo(Kumo * k) {
    for (int i = ArraySize(k.spanA) - 1; i >= 0; i--) {
-      PrintFormat(k.ts[i] + " (%f , %f)", k.spanA[i], k.spanB[i]);
+     // PrintFormat(k.ts[i] + " (%f , %f)", k.spanA[i], k.spanB[i]);
    }
-   PrintFormat("Total TS(%d), Flip TS " + k.flipTS, ArraySize(k.spanA));
+   PrintFormat("Total TS(%d),  Flip TS :(%s)", ArraySize(k.spanA), tsMin(k.flipTS));
+   PrintFormat("Kumo Length (%d),FlatA(%d), FlatB(%d)",k.flipTSIndex, k.spanAFlatCount,k.spanBFlatCount);
+   PrintFormat("Kumo Pick (%s)",tsMin(k.ts[0]));
+   
+}
+
+datetime getCurrentCandleTS() {
+   datetime tm[]; // array storing the returned bar time
+   ArraySetAsSeries(tm, true);
+   CopyTime(_Symbol, _Period, 0, 1, tm); //Getting the current candle time
+   return tm[0];
 }
