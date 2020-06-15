@@ -1,11 +1,8 @@
 #property strict
 
-class OrderOptimizer
-{
-
-public:
-    bool optimizeTakeProfit(int magicNumber, long &orderIds[], double optimizeLongTP, double optimizeShortTP)
-    {
+class OrderOptimizer {
+   public:
+    bool optimizeTakeProfit(int magicNumber, long &orderIds[], double optimizeLongTP, double optimizeShortTP) {
         int totalOrders = ArraySize(orderIds);
         debug("Trying to optimize the orders, count: " + totalOrders);
 

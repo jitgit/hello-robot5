@@ -2,10 +2,8 @@
 
 #include <devd/signal/SignalScanner.mqh>
 
-class BBSignalScanner : public SignalScanner
-{
-
-protected:
+class BBSignalScanner : public SignalScanner {
+   protected:
     double itsEntrySD;
     double itsStopLossSD;
     double itsTakeProfitSD;
@@ -14,42 +12,36 @@ protected:
     int itsRSIUpperBound;
     int itsRSILowerBound;
 
-    bool FillArraysFromBuffers(double &base_values[],  // indicator buffer of the middle line of Bollinger Bands
-                               double &upper_values[], // indicator buffer of the upper border
-                               double &lower_values[], // indicator buffer of the lower border
-                               int shift,              // shift
-                               int ind_handle,         // handle of the iBands indicator
-                               int amount              // number of copied values
-    )
-    {
+    bool FillArraysFromBuffers(double &base_values[],   // indicator buffer of the middle line of Bollinger Bands
+                               double &upper_values[],  // indicator buffer of the upper border
+                               double &lower_values[],  // indicator buffer of the lower border
+                               int shift,               // shift
+                               int ind_handle,          // handle of the iBands indicator
+                               int amount               // number of copied values
+    ) {
         ArraySetAsSeries(base_values, true);
         ArraySetAsSeries(upper_values, true);
         ArraySetAsSeries(lower_values, true);
         ResetLastError();
-        if (CopyBuffer(ind_handle, 0, -shift, amount, base_values) < 0)
-        {
+        if (CopyBuffer(ind_handle, 0, -shift, amount, base_values) < 0) {
             PrintFormat("Failed to copy data from the iBands indicator, error code %d", GetLastError());
             return (false);
         }
 
-        if (CopyBuffer(ind_handle, 1, -shift, amount, upper_values) < 0)
-        {
+        if (CopyBuffer(ind_handle, 1, -shift, amount, upper_values) < 0) {
             PrintFormat("Failed to copy data from the iBands indicator, error code %d", GetLastError());
             return (false);
         }
 
-        if (CopyBuffer(ind_handle, 2, -shift, amount, lower_values) < 0)
-        {
+        if (CopyBuffer(ind_handle, 2, -shift, amount, lower_values) < 0) {
             PrintFormat("Failed to copy data from the iBands indicator, error code %d", GetLastError());
             return (false);
         }
         return (true);
     }
 
-public:
-    SignalResult scan()
-    {
-
+   public:
+    SignalResult scan() {
         MqlTick current;
         SymbolInfoTick(_Symbol, current);
 
@@ -85,15 +77,13 @@ public:
         CopyBuffer(rsi_handle, 0, 0, 3, rsiBuffer);
         double rsiValue = NormalizeDouble(rsiBuffer[0], 2);
         double open = iOpen(_Symbol, _Period, 0);
-        if (current.ask < entryLower && open > entryLower && current.ask > stopLossLower && rsiValue < itsRSIUpperBound)
-        {
+        if (current.ask < entryLower && open > entryLower && current.ask > stopLossLower && rsiValue < itsRSIUpperBound) {
             result.go = GO_LONG;
             result.entry = current.ask;
             result.stopLoss = stopLossLower;
             result.takeProfit = takeProfitUpper;
         }
-        if (current.bid > entryUpper && open < entryUpper && current.bid<stopLossUpper & rsiValue> itsRSILowerBound)
-        {
+        if (current.bid > entryUpper && open < entryUpper && current.bid<stopLossUpper & rsiValue> itsRSILowerBound) {
             result.go = GO_SHORT;
             result.entry = current.bid;
             result.stopLoss = stopLossUpper;
@@ -103,29 +93,25 @@ public:
         return result;
     };
 
-    double optimizedLongTP()
-    {
+    double optimizedLongTP() {
         double takeProfitMidBuffer[], takeProfitLowerBuffer[], takeProfitUpperBuffer[];
         int takeProfitBB_Handle = iBands(_Symbol, _Period, itsBBPeriod, 0, itsTakeProfitSD, PRICE_CLOSE);
         FillArraysFromBuffers(takeProfitMidBuffer, takeProfitUpperBuffer, takeProfitLowerBuffer, 0, takeProfitBB_Handle, 3);
         return takeProfitLowerBuffer[0];
     };
 
-    double optimizedShortTP()
-    {
+    double optimizedShortTP() {
         double takeProfitMidBuffer[], takeProfitLowerBuffer[], takeProfitUpperBuffer[];
         int takeProfitBB_Handle = iBands(_Symbol, _Period, itsBBPeriod, 0, itsTakeProfitSD, PRICE_CLOSE);
         FillArraysFromBuffers(takeProfitMidBuffer, takeProfitUpperBuffer, takeProfitLowerBuffer, 0, takeProfitBB_Handle, 3);
         return takeProfitUpperBuffer[0];
     };
 
-    int magicNumber()
-    {
+    int magicNumber() {
         return 9;
     };
 
-    BBSignalScanner(double entrySD, double stopLossSD, double takeProfitSD, int bbPeriod, int rsiPeriod, int rsiUpperBound, int rsiLowerBound)
-    {
+    BBSignalScanner(double entrySD, double stopLossSD, double takeProfitSD, int bbPeriod, int rsiPeriod, int rsiUpperBound, int rsiLowerBound) {
         itsEntrySD = entrySD;
         itsStopLossSD = stopLossSD;
         itsTakeProfitSD = takeProfitSD;

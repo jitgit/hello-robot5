@@ -1,19 +1,15 @@
 #property strict
 
-class PipsCalculator
-{
-public:
-    virtual double sl()
-    {
+class PipsCalculator {
+   public:
+    virtual double sl() {
         return 0.0;
     };
-    virtual double tp()
-    {
+    virtual double tp() {
         return 0.0;
     };
 
-    double pips()
-    {
+    double pips() {
         if (_Digits >= 4)
             return 0.0001;
         else
@@ -21,24 +17,20 @@ public:
     }
 };
 
-class Algo
-{
-protected:
+class Algo {
+   protected:
     PipsCalculator *pipsCalculator;
 
-public:
-    virtual double calculateSL(bool isLong)
-    {
+   public:
+    virtual double calculateSL(bool isLong) {
         return 0.0;
     }
-    virtual double calculateTP(bool isLong)
-    {
+    virtual double calculateTP(bool isLong) {
         return 0.0;
     }
 
-public:
-    Algo(PipsCalculator *calc)
-    {
+   public:
+    Algo(PipsCalculator *calc) {
         pipsCalculator = calc;
     }
 };
