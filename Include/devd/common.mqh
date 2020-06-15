@@ -1,7 +1,3 @@
-//+------------------------------------------------------------------+
-//|                                                 Jatin Patel DevD |
-//|                                                 https://devd.com |
-//+------------------------------------------------------------------+
 #property strict
 input bool DEBUG_INFO = true;
 input bool WARN_INFO = true;
@@ -36,4 +32,3 @@ string tsMin(datetime dt)
 {
     return TimeToString(dt, TIME_MINUTES);
 }
-//+------------------------------------------------------------------+

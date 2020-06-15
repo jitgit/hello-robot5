@@ -1,8 +1,3 @@
-//+------------------------------------------------------------------+
-//|                                                 Jatin Patel DevD |
-//|                                                 https://devd.com |
-//+------------------------------------------------------------------+
-
 #property strict
 
 #include <devd/common.mqh>
@@ -23,9 +18,6 @@ input int RSI_PERIOD = 14;
 input int RSI_UPPER_BOUND = 60;
 input int RSI_LOWER_BOUND = 40;
 
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
 void main()
 {
   SignalScanner *scanner = new BBSignalScanner(BB_SD_ENTRY, BB_SD_STOPLOSS, BB_SD_TAKEPROFIT, BB_PERIOD, RSI_PERIOD, RSI_UPPER_BOUND, RSI_LOWER_BOUND);
@@ -75,4 +67,3 @@ void main()
   delete riskManager;
   riskManager = NULL;
 }
-//+------------------------------------------------------------------+
