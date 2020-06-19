@@ -14,5 +14,5 @@ void OnDeinit(const int reason) {
 }
 
 void OnTick() {
-    Comment("Hello World!!");
+    Print("Hello World!!");
 }

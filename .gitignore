@@ -1,5 +1,6 @@
 # Ignore everything
 *
+*.exe
 # But descend into directories
 !*/
 
@@ -14,6 +15,9 @@
 !/Profiles/*
 !/Profiles/Templates/devd/*.tpl
 
+!/Indicators/RSI/**
+Indicators/RSI/*.ex5
 
 !.gitignore
+
 
