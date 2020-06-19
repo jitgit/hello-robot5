@@ -16,7 +16,11 @@
 !/Profiles/Templates/devd/*.tpl
 
 !/Indicators/RSI/**
-Indicators/RSI/*.ex5
+Indicators/RSI/**/*.ex5
+
+
+!/Indicators/devd/**
+Indicators/devd/**/*.ex5
 
 !.gitignore
 
