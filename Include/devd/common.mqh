@@ -19,7 +19,7 @@ void warn(string s) {
 }
 
 void printArrayInfo(const double &a[], string msg, bool printValue = false) {
-    PrintFormat("%s , size: %f", msg, ArraySize(a));
+    PrintFormat("%s , size: %d", msg, ArraySize(a));
     if (printValue) {
         for (int i = 0; i < MathMin(100, ArraySize(a)); i++)
             PrintFormat("%d , %f", i, a[i]);
@@ -27,7 +27,7 @@ void printArrayInfo(const double &a[], string msg, bool printValue = false) {
 }
 
 void printArrayInfo(const datetime &a[], string msg, bool printValue = false) {
-    PrintFormat("%s , size: %f", msg, ArraySize(a));
+    PrintFormat("%s , size: %d", msg, ArraySize(a));
     if (printValue) {
         for (int i = 0; i < MathMin(100, ArraySize(a)); i++)
             PrintFormat("%d , %f", i, a[i]);
