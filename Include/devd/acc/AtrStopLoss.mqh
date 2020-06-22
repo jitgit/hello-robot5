@@ -15,7 +15,7 @@ class AtrStopLoss {
     int itAtrMAPeriod;
 
    public:
-    void calculateStopLoss(SignalResult &scanResult) {
+    void addEntryStopLossAndTakeProfit(SignalResult &scanResult) {
         double stopLoss = 0;
         double takeProfit = 0;
         double ATRValue[];                                // Variable to store the value of ATR
@@ -34,13 +34,13 @@ class AtrStopLoss {
 
             //SL = 2* atr & TP = 3 * SL; (1:3)
             if (scanResult.go == GO_LONG) {
-                scanResult.entry = Ask;
+                scanResult.entry = Ask - (20 * point);  //Closes to ASK for a Pending order
                 scanResult.stopLoss = Ask - (itsScale * atrValue);
                 scanResult.takeProfit = Bid + (itsTakeProfitRatio * itsScale * atrValue);
             }
 
             if (scanResult.go == GO_SHORT) {
-                scanResult.entry = Bid;
+                scanResult.entry = Bid + (20 * point);  //Closes to BID for a Pending order
                 scanResult.stopLoss = Bid + (itsScale * atrValue);
                 scanResult.takeProfit = Ask - (itsTakeProfitRatio * itsScale * atrValue);
             }

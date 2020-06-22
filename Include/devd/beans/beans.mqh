@@ -4,7 +4,7 @@
 //|                                             https://www.devd.com |
 //+------------------------------------------------------------------+
 #property copyright "Devd"
-#property link      "https://www.devd.com"
+#property link "https://www.devd.com"
 
 enum GO {
     GO_NOTHING,
@@ -21,6 +21,6 @@ struct SignalResult {
     int TP;
 
     string str() {
-        return StringFormat("Signal - (GO: %d, entryPrice: %f, stopLoss(%d): %f, takeProfit(%d): %f)", go, entry, SL,stopLoss, TP,takeProfit);
+        return StringFormat("Signal - (GO: %d, entryPrice: %f, stopLoss(%d): %f, takeProfit(%d): %f)", go, entry, SL, stopLoss, TP, takeProfit);
     }
 };

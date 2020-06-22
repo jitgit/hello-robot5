@@ -1,6 +1,6 @@
 #property strict
 
-#include <devd/signal/SignalScanner.mqh>
+#include <devd/include-base.mqh>
 
 class BBSignalScanner : public SignalScanner {
    protected:

@@ -18,6 +18,5 @@ void OnDeinit(const int reason) {
 }
 
 void OnTick() {
-
    main();
 }

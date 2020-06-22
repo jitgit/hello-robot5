@@ -1,38 +1,4 @@
 #property strict
-input bool DEBUG_INFO = false;
-input bool WARN_INFO = true;
-
-void log(string s) {
-    Print("INFO - " + s);
-}
-
-void debug(string s) {
-    if (DEBUG_INFO) {
-        Print("DBUG - " + s);
-    }
-}
-
-void warn(string s) {
-    if (WARN_INFO) {
-        Print("WARN - " + s);
-    }
-}
-
-void printArrayInfo(const double &a[], string msg, bool printValue = false) {
-    PrintFormat("%s , size: %d", msg, ArraySize(a));
-    if (printValue) {
-        for (int i = 0; i < MathMin(100, ArraySize(a)); i++)
-            PrintFormat("%d , %f", i, a[i]);
-    }
-}
-
-void printArrayInfo(const datetime &a[], string msg, bool printValue = false) {
-    PrintFormat("%s , size: %d", msg, ArraySize(a));
-    if (printValue) {
-        for (int i = 0; i < MathMin(100, ArraySize(a)); i++)
-            PrintFormat("%d , %f", i, a[i]);
-    }
-}
 
 double norm(double d) {
     return NormalizeDouble(d, _Digits);
@@ -121,4 +87,37 @@ string ResultRetcodeDescription(int retcode) {
     }
     //----
     return (str);
+}
+
+string timFrameToString(ENUM_TIMEFRAMES tf) {
+    string str;
+    switch (tf) {
+        case PERIOD_W1:
+            str = "PERIOD_W1";
+            break;
+        case PERIOD_D1:
+            str = "PERIOD_D1";
+            break;
+        case PERIOD_H1:
+            str = "PERIOD_H1";
+            break;
+        case PERIOD_H2:
+            str = "PERIOD_H2";
+            break;
+        case PERIOD_H4:
+            str = "PERIOD_H4";
+            break;
+        case PERIOD_H8:
+            str = "PERIOD_H8";
+            break;
+        case PERIOD_M1:
+            str = "PERIOD_M1";
+            break;
+        case PERIOD_M5:
+            str = "PERIOD_M5";
+            break;
+        default:
+            str = PeriodSeconds(tf) / 60 + "M";
+    }
+    return str;
 }

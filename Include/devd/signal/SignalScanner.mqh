@@ -7,6 +7,11 @@ class SignalScanner {
         return result;
     }
 
+    virtual SignalResult scan(ENUM_TIMEFRAMES &timeFrames[]) {
+        SignalResult result = {GO_NOTHING, -1.0, -1.0, -1.0};
+        return result;
+    }
+
     virtual int magicNumber() {
         return -1;
     }

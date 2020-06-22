@@ -92,7 +92,6 @@ class RiskManager {
             PrintFormat("SELL TP(%f) < (%f) < SL(%f)", sell_tp, Bid, sell_sl);
             lotSize = calculateLotSize(valueToRisk, signal.SL, signal.TP, sell_sl);
         }
-        PrintFormat("==> LotSize(%f)", lotSize);
         return lotSize;
     }
 
@@ -108,8 +107,12 @@ class RiskManager {
         double lots = NormalizeDouble(_lotcalculation, lotdigits);
         if (lots < min_lot) lots = min_lot;
         if (lots > max_lot) lots = max_lot;
-        return lots;
+        double roundedDown = MathRoundDown(lots, 0.01);
+        PrintFormat("===> LotSize rounded down  %f ==> %f", _lotcalculation, roundedDown);
+        return roundedDown;
     }
+
+    double MathRoundDown(double v, double to) { return to * MathFloor(v / to); }
 
     double optimalLotSizeWithPips(double maxRiskPerc, int maxLossInPips) {
         double profit = AccountInfoDouble(ACCOUNT_PROFIT);

@@ -14,3 +14,20 @@ double GetPipValueFromDigits() {
     else
         return 0.01;
 }
+
+bool isTradingAllowed() {
+    if (!AccountInfoInteger(ACCOUNT_TRADE_EXPERT)) {
+        Alert("Automated trading is forbidden for the account ", AccountInfoInteger(ACCOUNT_LOGIN),
+              " at the trade server side");
+        warn("Auto Trading is disable for Expert Advisor");
+        return false;
+    } else {
+        //TODO
+        /*if (!IsTradeAllowed(_Symbol, TimeCurrent()))
+            {
+                warn(StringFormat("Trading Hours are closed for %s.", _Symbol));
+                return false;
+            }*/
+    }
+    return true;
+}

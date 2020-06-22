@@ -15,10 +15,10 @@
 void OnStart() {
     AtrStopLoss *stopLoss = new AtrStopLoss(14);
     SignalResult r = {GO_LONG, -1.0, -1.0, -1.0};
-    stopLoss.calculateStopLoss(r);
+    stopLoss.addEntryStopLossAndTakeProfit(r);
     Print("=========================");
     r.go = GO_SHORT;
-    stopLoss.calculateStopLoss(r);
+    stopLoss.addEntryStopLossAndTakeProfit(r);
     
     RiskManager riskManager = new RiskManager();
     double optimalLotSize = riskManager.optimalLotSizeFrom(r,2.0);
