@@ -3,7 +3,7 @@
 #include <devd/acc/AccountManager.mqh>
 #include <devd/acc/RiskManager.mqh>
 #include <devd/account-utils.mqh>
-#include <devd/common.mqh>
+#include <devd/include-base.mqh>
 #include <devd/order/OrderManager.mqh>
 #include <devd/order/OrderOptimizer.mqh>
 #include <devd/signal/bb/BBSignalScanner.mqh>
@@ -41,14 +41,14 @@ void main() {
         accountManager.printAccountInfo();
         PrintCurrencyInfo();
 
-        SignalResult scan = scanner.scan();
-        debug("Scan Result: " + scan.str());
+        SignalResult signal = scanner.scan();
+        debug(signal.str());
 
-        if (scan.go == GO_LONG || scan.go == GO_SHORT) {
-            debug("Booking order: " + scan.str());
-            bool isLong = scan.go == GO_LONG;
+        if (signal.go == GO_LONG || signal.go == GO_SHORT) {
+            debug("Booking order: " + signal.str());
+            bool isLong = signal.go == GO_LONG;
             double optimalLotSize = riskManager.optimalLotSize(isLong,SL,TP, MAX_RISK_PERCENTAGE);
-            orderManager.bookTrade(isLong, scan.entry, scan.stopLoss, scan.takeProfit, optimalLotSize, scanner.magicNumber());
+            orderManager.bookTrade(isLong, signal.entry, signal.stopLoss, signal.takeProfit, optimalLotSize, scanner.magicNumber());
         } else {
             debug("NO SIGNAL FROM SCAN RESULT");
         }

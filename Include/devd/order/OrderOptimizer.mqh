@@ -1,4 +1,5 @@
 #property strict
+#include <devd\include-base.mqh>
 
 class OrderOptimizer {
    private:
@@ -9,7 +10,7 @@ class OrderOptimizer {
     int itsSL_prof;        //Start BE, points
     int itsSL_lev;         //BE level, points
    public:
-    OrderOptimizer(int trailingStop, int trailingStep, int trailingStart, int sL_prof, int sL_lev, int rsiUpperBound, int rsiLowerBound) {
+    OrderOptimizer(int trailingStop = 0, int trailingStep = 0, int trailingStart = 0, int sL_prof = 0, int sL_lev = 0) {
         itsTrailingStep = trailingStep;
         itsTrailingStop = trailingStop;
         itsTrailingStart = trailingStart;
@@ -17,7 +18,7 @@ class OrderOptimizer {
         itsSL_lev = sL_lev;
     }
 
-    int Trail(int magicNumber) {
+    int trailingStop(int magicNumber) {
         if (itsTrailingStart > 0 && itsTrailingStop > 0) {
             for (int i = 0; i < PositionsTotal(); i++) {
                 if (PositionGetSymbol(i) == _Symbol && PositionGetInteger(POSITION_MAGIC) == magicNumber) {
@@ -57,7 +58,7 @@ class OrderOptimizer {
         }
     }
 
-    int BE(int magicNumber) {
+    int breakEven(int magicNumber) {
         if (itsSL_prof > 0) {
             for (int i = 0; i < PositionsTotal(); i++) {
                 if (PositionGetSymbol(i) == _Symbol && PositionGetInteger(POSITION_MAGIC) == magicNumber) {

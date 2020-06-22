@@ -19,6 +19,10 @@
 Indicators/RSI/**/*.ex5
 
 
+!/Scripts/devd/**
+Scripts/devd/**/*.ex5
+
+
 !/Indicators/devd/**
 Indicators/devd/**/*.ex5
 

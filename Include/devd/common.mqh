@@ -1,5 +1,5 @@
 #property strict
-input bool DEBUG_INFO = true;
+input bool DEBUG_INFO = false;
 input bool WARN_INFO = true;
 
 void log(string s) {

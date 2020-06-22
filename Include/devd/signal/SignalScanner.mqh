@@ -1,22 +1,5 @@
 #property strict
 
-enum GO {
-    GO_NOTHING,
-    GO_LONG,
-    GO_SHORT
-};
-
-struct SignalResult {
-    GO go;
-    double entry;
-    double stopLoss;
-    double takeProfit;
-
-    string str() {
-        return StringFormat(" GO: %d, entryPrice: %f, stopLoss: %f, takeProfit: %f", go, entry, stopLoss, takeProfit);
-    }
-};
-
 class SignalScanner {
    public:
     virtual SignalResult scan() {
