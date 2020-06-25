@@ -5,7 +5,7 @@
 #include <devd/account-utils.mqh>
 #include <devd/include-base.mqh>
 #include <devd/order/OrderManager.mqh>
-#include <devd/order/OrderOptimizer.mqh>
+#include <devd/order/TradeOptimizer.mqh>
 #include <devd/signal/bb/BBSignalScanner.mqh>
 
 input int MAX_ORDER_THREADHOLD = 1;
@@ -22,8 +22,6 @@ input int RSI_LOWER_BOUND = 40;
 void main() {
     int SL = 100;
     int TP = 2 * 100;
-    RiskManager *riskManager = new RiskManager();
-    double optimalLotSize = riskManager.optimalLotSize(true, SL, TP, MAX_RISK_PERCENTAGE);
 
     /*SignalScanner *scanner = new BBSignalScanner(BB_SD_ENTRY, BB_SD_STOPLOSS, BB_SD_TAKEPROFIT, BB_PERIOD, RSI_PERIOD, RSI_UPPER_BOUND, RSI_LOWER_BOUND);
     OrderManager *orderManager = new OrderManager();

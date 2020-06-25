@@ -12,6 +12,16 @@ class BBSignalScanner : public SignalScanner {
     int itsRSIUpperBound;
     int itsRSILowerBound;
 
+    BBSignalScanner(double entrySD, double stopLossSD, double takeProfitSD, int bbPeriod, int rsiPeriod, int rsiUpperBound, int rsiLowerBound) {
+        itsEntrySD = entrySD;
+        itsStopLossSD = stopLossSD;
+        itsTakeProfitSD = takeProfitSD;
+        itsBBPeriod = bbPeriod;
+        itsRSIPeriod = rsiPeriod;
+        itsRSIUpperBound = rsiUpperBound;
+        itsRSILowerBound = rsiLowerBound;
+    }
+
     bool FillArraysFromBuffers(double &base_values[],   // indicator buffer of the middle line of Bollinger Bands
                                double &upper_values[],  // indicator buffer of the upper border
                                double &lower_values[],  // indicator buffer of the lower border
@@ -107,19 +117,9 @@ class BBSignalScanner : public SignalScanner {
         return takeProfitUpperBuffer[0];
     };
 
-    int magicNumber() {
+    int magic() {
         return 9;
     };
-
-    BBSignalScanner(double entrySD, double stopLossSD, double takeProfitSD, int bbPeriod, int rsiPeriod, int rsiUpperBound, int rsiLowerBound) {
-        itsEntrySD = entrySD;
-        itsStopLossSD = stopLossSD;
-        itsTakeProfitSD = takeProfitSD;
-        itsBBPeriod = bbPeriod;
-        itsRSIPeriod = rsiPeriod;
-        itsRSIUpperBound = rsiUpperBound;
-        itsRSILowerBound = rsiLowerBound;
-    }
 };
 
 //+------------------------------------------------------------------+

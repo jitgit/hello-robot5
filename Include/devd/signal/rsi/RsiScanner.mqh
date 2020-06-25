@@ -7,9 +7,14 @@ class RsiScanner : public SignalScanner {
     int itsRSIPeriod;
     int itsRSIUpperBound;
     int itsRSILowerBound;
-    ENUM_TIMEFRAMES itsTimeFrames[];
 
    public:
+    RsiScanner(int rsiPeriod, int rsiUpperBound, int rsiLowerBound) {
+        itsRSIPeriod = rsiPeriod;
+        itsRSIUpperBound = rsiUpperBound;
+        itsRSILowerBound = rsiLowerBound;
+    }
+
     SignalResult scan() {
         SignalResult result = {GO_NOTHING, -1.0, -1.0, -1.0};
 
@@ -53,16 +58,9 @@ class RsiScanner : public SignalScanner {
         return result;
     }
 
-    int magicNumber() {
+    int magic() {
         return 234;
     };
-
-    RsiScanner(int rsiPeriod, int rsiUpperBound, int rsiLowerBound, ENUM_TIMEFRAMES &timeFrames[]) {
-        itsRSIPeriod = rsiPeriod;
-        itsRSIUpperBound = rsiUpperBound;
-        itsRSILowerBound = rsiLowerBound;
-        //itsTimeFrames = timeFrames;
-    }
 };
 
 //+------------------------------------------------------------------+

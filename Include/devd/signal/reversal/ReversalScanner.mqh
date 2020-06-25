@@ -12,6 +12,12 @@ class ReversalScanner : public SignalScanner {
     int itsRSIUpperBound;
     int itsRSILowerBound;
 
+    ReversalScanner(int rsiPeriod, int rsiUpperBound, int rsiLowerBound) {
+        itsRSIPeriod = rsiPeriod;
+        itsRSIUpperBound = rsiUpperBound;
+        itsRSILowerBound = rsiLowerBound;
+    }
+
     bool FillArraysFromBuffers(double &base_values[],   // indicator buffer of the middle line of Bollinger Bands
                                double &upper_values[],  // indicator buffer of the upper border
                                double &lower_values[],  // indicator buffer of the lower border
@@ -67,15 +73,9 @@ class ReversalScanner : public SignalScanner {
         return result;
     };
 
-    int magicNumber() {
-        return 234;
+    int magic() {
+        return 235;
     };
-
-    ReversalScanner(int rsiPeriod, int rsiUpperBound, int rsiLowerBound) {
-        itsRSIPeriod = rsiPeriod;
-        itsRSIUpperBound = rsiUpperBound;
-        itsRSILowerBound = rsiLowerBound;
-    }
 };
 
 //+------------------------------------------------------------------+

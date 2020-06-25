@@ -2,6 +2,8 @@
 
 class SignalScanner {
    public:
+    SignalScanner() {
+    }
     virtual SignalResult scan() {
         SignalResult result = {GO_NOTHING, -1.0, -1.0, -1.0};
         return result;
@@ -12,7 +14,7 @@ class SignalScanner {
         return result;
     }
 
-    virtual int magicNumber() {
+    virtual int magic() {
         return -1;
     }
 
@@ -20,8 +22,4 @@ class SignalScanner {
         return 0.0;
     }
     virtual double optimizedShortTP() { return 0.0; }
-
-   public:
-    SignalScanner() {
-    }
 };

@@ -14,6 +14,10 @@ class RiskManager {
     double itsRiskPercentage;
 
    public:
+    RiskManager(double riskPercentage = 2) {
+        itsRiskPercentage = riskPercentage;
+    }
+
     double optimalLotSizeOnMarketPrice(bool isLong, int SL, int TP, double maxRiskPerc) {
         double accBalance = AccountInfoDouble(ACCOUNT_BALANCE);
         double accEquity = AccountInfoDouble(ACCOUNT_EQUITY);
@@ -35,7 +39,7 @@ class RiskManager {
         PrintFormat("PIPS TakeProfit(%d), StopLoss:(%d)", TP, SL);
         PrintFormat("Ask:%f , Bid: %f", Ask, Bid);
 
-        PrintFormat("Spread (%f)Pips (Ask-Bid):%f", spreadPips, spreadPips * point);
+        PrintFormat("Spread Pips(%f) (Ask-Bid): %f", spreadPips, spreadPips * point);
         double lotSize = 0;
         if (isLong) {
             //Buy SL/TP calcuated based on Bid due to Spread
@@ -51,7 +55,6 @@ class RiskManager {
             PrintFormat("SELL TP(%f) < (%f) < SL(%f)", sell_tp, Bid, sell_sl);
             lotSize = calculateLotSize(valueToRisk, SL, TP, sell_sl);
         }
-        PrintFormat("==> LotSize(%f)", lotSize);
         return lotSize;
     }
 
@@ -71,25 +74,24 @@ class RiskManager {
 
         double valueToRisk = (maxRiskPerc / 100) * minBalance;
 
-        PrintFormat("Balance :%f, Equity :%f, Risk :%f", accBalance, accEquity, valueToRisk);
-        PrintFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), _Point:(%f)", tickValue, tickSize, stopLossLevel, _Point);
-        PrintFormat(signal.str());
-        PrintFormat("Ask:%f , Bid: %f", Ask, Bid);
+        debug(StringFormat("Balance :%f, Equity :%f, Risk :%f", accBalance, accEquity, valueToRisk));
+        debug(StringFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), _Point:(%f)", tickValue, tickSize, stopLossLevel, _Point));
+        debug(StringFormat("Ask:%f , Bid: %f", Ask, Bid));
 
-        PrintFormat("Spread (%f)Pips (Ask-Bid):%f", spreadPips, spreadPips * point);
+        debug(StringFormat("Spread (%f)Pips (Ask-Bid):%f", spreadPips, spreadPips * point));
         double lotSize = 0;
         if (signal.go == GO_LONG) {
             //Buy SL/TP calcuated based on Bid due to Spread
             double buy_tp = NormalizeDouble(Bid + signal.TP * point, digit);
             double buy_sl = NormalizeDouble(Bid - signal.SL * point, digit);
-            PrintFormat("BUY  TP(%f) > (%f) > SL(%f)", buy_tp, Ask, buy_sl);
+            debug(StringFormat("BUY  TP(%f) > (%f) > SL(%f)", buy_tp, Ask, buy_sl));
 
             lotSize = calculateLotSize(valueToRisk, signal.SL, signal.TP, buy_sl);
         } else if (signal.go == GO_SHORT) {
             //Sell SL/TP calcuated based on Ask due to Spread
             double sell_tp = NormalizeDouble(Ask - signal.TP * point, digit);
             double sell_sl = NormalizeDouble(Ask + signal.SL * point, digit);
-            PrintFormat("SELL TP(%f) < (%f) < SL(%f)", sell_tp, Bid, sell_sl);
+            debug(StringFormat("SELL TP(%f) < (%f) < SL(%f)", sell_tp, Bid, sell_sl));
             lotSize = calculateLotSize(valueToRisk, signal.SL, signal.TP, sell_sl);
         }
         return lotSize;
@@ -108,7 +110,7 @@ class RiskManager {
         if (lots < min_lot) lots = min_lot;
         if (lots > max_lot) lots = max_lot;
         double roundedDown = MathRoundDown(lots, 0.01);
-        PrintFormat("===> LotSize rounded down  %f ==> %f", _lotcalculation, roundedDown);
+        info(StringFormat("===> LotSize rounded down  %f ==> %f", _lotcalculation, roundedDown));
         return roundedDown;
     }
 
@@ -150,11 +152,6 @@ class RiskManager {
 
     double optimalLotSize(double entryPrice, double stopLoss) {
         return optimalLotSize(itsRiskPercentage, entryPrice, stopLoss);
-    }
-
-   public:
-    RiskManager(double riskPercentage = 2) {
-        itsRiskPercentage = riskPercentage;
     }
 };
 //+------------------------------------------------------------------+

@@ -1,5 +1,15 @@
 #property strict
 
+double normalizeAsk(string symbol) {
+    int digit = int(SymbolInfoInteger(symbol, SYMBOL_DIGITS));
+    return NormalizeDouble(SymbolInfoDouble(symbol, SYMBOL_ASK), digit);
+}
+
+double normalizeBid(string symbol) {
+    int digit = int(SymbolInfoInteger(symbol, SYMBOL_DIGITS));
+    return NormalizeDouble(SymbolInfoDouble(symbol, SYMBOL_BID), digit);
+}
+
 double norm(double d) {
     return NormalizeDouble(d, _Digits);
 }
