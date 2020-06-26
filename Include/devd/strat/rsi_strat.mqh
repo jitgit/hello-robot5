@@ -30,7 +30,7 @@ void main() {
     ATRBasedSLTPMarketPricer *atrPricer = new ATRBasedSLTPMarketPricer(14);
 
     int anyExistingOrders = orderManager.getTotalOrderByMagicNum(scanner.magic());
-    log(StringFormat("Magic Number(%d), MaxOrder(%d), Exiting(%d)", scanner.magic(), (SELL_ORDER_MAX + BUY_ORDER_MAX), anyExistingOrders));
+    info(StringFormat("Magic Number(%d), MaxOrder(%d), Exiting(%d)", scanner.magic(), (SELL_ORDER_MAX + BUY_ORDER_MAX), anyExistingOrders));
 
     if (anyExistingOrders >= SELL_ORDER_MAX + BUY_ORDER_MAX) {
         debug("MAX ORDER THREASHOLD REACHED. Optimizing existing trades ...");

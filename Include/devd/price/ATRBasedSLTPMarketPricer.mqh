@@ -28,15 +28,15 @@ class ATRBasedSLTPMarketPricer {
         int ATRHandle = iATR(_Symbol, 0, itAtrMAPeriod);  // returns a handle for ATR
         double Ask = normalizeAsk(_Symbol);
         double Bid = normalizeBid(_Symbol);
-        PrintFormat("Calculating SL for %s", signal.str());
+        info(StringFormat("Calculating SL for %s", signal.str()));
         double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
-        PrintFormat("Ask:%f , Bid: %f , Point: %f", Ask, Bid, point);
+        info(StringFormat("Ask:%f , Bid: %f , Point: %f", Ask, Bid, point));
 
         ArraySetAsSeries(ATRValue, true);
 
         if (CopyBuffer(ATRHandle, 0, 0, 1, ATRValue) > 0 && signal.go != GO_NOTHING) {
             double atrValue = ATRValue[0];
-            PrintFormat("ATR Value %f", atrValue);
+            info(StringFormat("ATR Value %f", atrValue));
 
             //SL = 2* atr & TP = 3 * SL; (1:3)
             if (signal.go == GO_LONG) {
@@ -53,7 +53,7 @@ class ATRBasedSLTPMarketPricer {
             signal.SL = MathAbs(signal.entry - signal.stopLoss) / point;
             signal.TP = MathAbs(signal.entry - signal.takeProfit) / point;
         }
-        PrintFormat("%s - UPDATED Signal %s", tsDate(TimeCurrent()), signal.str());
+        info(StringFormat("%s - UPDATED Signal %s", tsDate(TimeCurrent()), signal.str()));
     }
 };
 //+------------------------------------------------------------------+

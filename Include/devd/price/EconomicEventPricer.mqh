@@ -46,7 +46,7 @@ class EconomicEventPricer {
                 signal.takeProfit = Ask - (signal.TP * point);
             }
         }
-        PrintFormat("%s - UPDATED Scan %s", tsDate(TimeCurrent()), signal.str());
+        info(StringFormat("%s - UPDATED Scan %s", tsDate(TimeCurrent()), signal.str()));
     }
 };
 //+------------------------------------------------------------------+

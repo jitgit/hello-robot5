@@ -2,10 +2,6 @@
 input bool LOG_DEBUG_LEVEL = true;
 input bool LOG_WARN_LEVEL = true;
 
-void log(string s) {
-    Print("INFO - " + s);
-}
-
 void info(string s) {
     Print("INFO - " + s);
 }

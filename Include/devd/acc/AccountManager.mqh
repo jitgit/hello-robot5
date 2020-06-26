@@ -1,5 +1,6 @@
 
 #property strict
+#include <devd/include-base.mqh>
 
 class AccountManager {
    protected:

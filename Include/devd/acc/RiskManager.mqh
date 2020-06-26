@@ -34,25 +34,25 @@ class RiskManager {
 
         double valueToRisk = (maxRiskPerc / 100) * minBalance;
 
-        PrintFormat("Balance :%f, Equity :%f, Risk :%f", accBalance, accEquity, valueToRisk);
-        PrintFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), _Point:(%f)", tickValue, tickSize, stopLossLevel, _Point);
-        PrintFormat("PIPS TakeProfit(%d), StopLoss:(%d)", TP, SL);
-        PrintFormat("Ask:%f , Bid: %f", Ask, Bid);
+        debug(StringFormat("Balance :%f, Equity :%f, Risk :%f", accBalance, accEquity, valueToRisk));
+        debug(StringFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), _Point:(%f)", tickValue, tickSize, stopLossLevel, _Point));
+        debug(StringFormat("PIPS TakeProfit(%d), StopLoss:(%d)", TP, SL));
+        debug(StringFormat("Ask:%f , Bid: %f", Ask, Bid));
 
-        PrintFormat("Spread Pips(%f) (Ask-Bid): %f", spreadPips, spreadPips * point);
+        debug(StringFormat("Spread Pips(%f) (Ask-Bid): %f", spreadPips, spreadPips * point));
         double lotSize = 0;
         if (isLong) {
             //Buy SL/TP calcuated based on Bid due to Spread
             double buy_tp = NormalizeDouble(Bid + TP * point, digit);
             double buy_sl = NormalizeDouble(Bid - SL * point, digit);
-            PrintFormat("BUY  TP(%f) > (%f) > SL(%f)", buy_tp, Ask, buy_sl);
+            debug(StringFormat("BUY  TP(%f) > (%f) > SL(%f)", buy_tp, Ask, buy_sl));
 
             lotSize = calculateLotSize(valueToRisk, SL, TP, buy_sl);
         } else {
             //Sell SL/TP calcuated based on Ask due to Spread
             double sell_tp = NormalizeDouble(Ask - TP * point, digit);
             double sell_sl = NormalizeDouble(Ask + SL * point, digit);
-            PrintFormat("SELL TP(%f) < (%f) < SL(%f)", sell_tp, Bid, sell_sl);
+            debug(StringFormat("SELL TP(%f) < (%f) < SL(%f)", sell_tp, Bid, sell_sl));
             lotSize = calculateLotSize(valueToRisk, SL, TP, sell_sl);
         }
         return lotSize;
@@ -130,14 +130,14 @@ class RiskManager {
         tickValue = tickValue;
         if (_Digits <= 3)  //handling JPY
             tickValue = tickValue / 100;
-        log(StringFormat("Tick (Value :%f, Size :%f)", tickValue, tickSize));
+        info(StringFormat("Tick (Value :%f, Size :%f)", tickValue, tickSize));
         if (tickValue != 0) {
             double maxLossInQuoteCurrency = maxLoss / tickValue;
 
             double optimalLotSize = NormalizeDouble(maxLossInQuoteCurrency / (maxLossInPips * GetPipValueFromDigits()) / lotSize, 2);
-            log(StringFormat("Balance :%+.0f %s, Equity: %+.0f %s, MaxLoss :%+.0f %s, maxLossInPips:%d", accBalance, accCurr, accEquity, accCurr, maxLoss, accCurr, maxLossInPips));
+            info(StringFormat("Balance :%+.0f %s, Equity: %+.0f %s, MaxLoss :%+.0f %s, maxLossInPips:%d", accBalance, accCurr, accEquity, accCurr, maxLoss, accCurr, maxLossInPips));
 
-            log(StringFormat("RISK_ALLOWED: %f, maxLossInQuoteCurrency :%f, optimalLotSize: %f", maxRiskPerc, maxLossInQuoteCurrency, optimalLotSize));
+            info(StringFormat("RISK_ALLOWED: %f, maxLossInQuoteCurrency :%f, optimalLotSize: %f", maxRiskPerc, maxLossInQuoteCurrency, optimalLotSize));
             return optimalLotSize;
         } else {
             warn("Tick Value is zero");
