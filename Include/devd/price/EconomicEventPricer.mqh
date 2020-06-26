@@ -21,32 +21,32 @@ class EconomicEventPricer {
         itsTakeProfitRatio = takeProfitRatio;
     }
 
-    void addEntryStopLossAndTakeProfit(SignalResult &scanResult, int pipDistance) {
+    void addEntryStopLossAndTakeProfit(SignalResult &signal, int pipDistance) {
         double stopLoss = 0;
         double takeProfit = 0;
         double Ask = normalizeAsk(_Symbol);
         double Bid = normalizeBid(_Symbol);
-        debug(StringFormat("Calculating SL for %s", scanResult.str()));
+        debug(StringFormat("Calculating SL for %s", signal.str()));
         double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
         debug(StringFormat("Ask: %f, Bid: %f, Point(%f), Pip Distance(%d)", Ask, Bid, point, pipDistance));
 
-        if (scanResult.go != GO_NOTHING) {
-            scanResult.SL = 0;    //The pips are irrelavent as SL is at BE
-            scanResult.TP = 300;  // TODO can be 300 as in case of Economic Event there is expected a huge spike
+        if (signal.go != GO_NOTHING) {
+            signal.SL = 0;    //The pips are irrelavent as SL is at BE
+            signal.TP = 300;  // TODO can be 300 as in case of Economic Event there is expected a huge spike
 
-            if (scanResult.go == GO_LONG) {
-                scanResult.entry = Ask + (pipDistance * point);         //Closes to ASK for a Pending order
-                scanResult.stopLoss = 0;                                //SL at BE, as we will have a sudden spike from news event
-                scanResult.takeProfit = Bid + (scanResult.TP * point);  //
+            if (signal.go == GO_LONG) {
+                signal.entry = Ask + (pipDistance * point);         //Closes to ASK for a Pending order
+                signal.stopLoss = 0;                                //SL at BE, as we will have a sudden spike from news event
+                signal.takeProfit = Bid + (signal.TP * point);  //
             }
 
-            if (scanResult.go == GO_SHORT) {
-                scanResult.entry = Bid - (pipDistance * point);  //Closes to BID for a Pending order
-                scanResult.stopLoss = 0;                         //SL at BE, as we will have a sudden spike from news event
-                scanResult.takeProfit = Ask - (scanResult.TP * point);
+            if (signal.go == GO_SHORT) {
+                signal.entry = Bid - (pipDistance * point);  //Closes to BID for a Pending order
+                signal.stopLoss = 0;                         //SL at BE, as we will have a sudden spike from news event
+                signal.takeProfit = Ask - (signal.TP * point);
             }
         }
-        PrintFormat("%s ==> Updated Scan %s", tsDate(TimeCurrent()), scanResult.str());
+        PrintFormat("%s - UPDATED Scan %s", tsDate(TimeCurrent()), signal.str());
     }
 };
 //+------------------------------------------------------------------+

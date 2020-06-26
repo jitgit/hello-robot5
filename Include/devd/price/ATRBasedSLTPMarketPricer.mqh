@@ -21,39 +21,39 @@ class ATRBasedSLTPMarketPricer {
         itsTakeProfitRatio = takeProfitRatio;
     }
 
-    void addEntryStopLossAndTakeProfit(SignalResult &scanResult) {
+    void addEntryStopLossAndTakeProfit(SignalResult &signal) {
         double stopLoss = 0;
         double takeProfit = 0;
         double ATRValue[];                                // Variable to store the value of ATR
         int ATRHandle = iATR(_Symbol, 0, itAtrMAPeriod);  // returns a handle for ATR
         double Ask = normalizeAsk(_Symbol);
         double Bid = normalizeBid(_Symbol);
-        PrintFormat("Calculating SL for %s", scanResult.str());
+        PrintFormat("Calculating SL for %s", signal.str());
         double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
         PrintFormat("Ask:%f , Bid: %f , Point: %f", Ask, Bid, point);
 
         ArraySetAsSeries(ATRValue, true);
 
-        if (CopyBuffer(ATRHandle, 0, 0, 1, ATRValue) > 0 && scanResult.go != GO_NOTHING) {
+        if (CopyBuffer(ATRHandle, 0, 0, 1, ATRValue) > 0 && signal.go != GO_NOTHING) {
             double atrValue = ATRValue[0];
             PrintFormat("ATR Value %f", atrValue);
 
             //SL = 2* atr & TP = 3 * SL; (1:3)
-            if (scanResult.go == GO_LONG) {
-                scanResult.entry = Ask - (10 * point);  //Closes to ASK for a Pending order
-                scanResult.stopLoss = Ask - (itsScale * atrValue);
-                scanResult.takeProfit = Bid + (itsTakeProfitRatio * itsScale * atrValue);
+            if (signal.go == GO_LONG) {
+                signal.entry = Ask - (10 * point);  //Closes to ASK for a Pending order
+                signal.stopLoss = Ask - (itsScale * atrValue);
+                signal.takeProfit = Bid + (itsTakeProfitRatio * itsScale * atrValue);
             }
 
-            if (scanResult.go == GO_SHORT) {
-                scanResult.entry = Bid + (10 * point);  //Closes to BID for a Pending order
-                scanResult.stopLoss = Bid + (itsScale * atrValue);
-                scanResult.takeProfit = Ask - (itsTakeProfitRatio * itsScale * atrValue);
+            if (signal.go == GO_SHORT) {
+                signal.entry = Bid + (10 * point);  //Closes to BID for a Pending order
+                signal.stopLoss = Bid + (itsScale * atrValue);
+                signal.takeProfit = Ask - (itsTakeProfitRatio * itsScale * atrValue);
             }
-            scanResult.SL = MathAbs(scanResult.entry - scanResult.stopLoss) / point;
-            scanResult.TP = MathAbs(scanResult.entry - scanResult.takeProfit) / point;
+            signal.SL = MathAbs(signal.entry - signal.stopLoss) / point;
+            signal.TP = MathAbs(signal.entry - signal.takeProfit) / point;
         }
-        PrintFormat("%s ==> Updated Scan %s", tsDate(TimeCurrent()), scanResult.str());
+        PrintFormat("%s - UPDATED Signal %s", tsDate(TimeCurrent()), signal.str());
     }
 };
 //+------------------------------------------------------------------+
