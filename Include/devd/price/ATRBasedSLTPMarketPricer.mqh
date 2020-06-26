@@ -24,19 +24,19 @@ class ATRBasedSLTPMarketPricer {
     void addEntryStopLossAndTakeProfit(SignalResult &signal) {
         double stopLoss = 0;
         double takeProfit = 0;
-        double ATRValue[];                                // Variable to store the value of ATR
-        int ATRHandle = iATR(_Symbol, 0, itAtrMAPeriod);  // returns a handle for ATR
-        double Ask = normalizeAsk(_Symbol);
-        double Bid = normalizeBid(_Symbol);
+        double ATRValue[];                                      // Variable to store the value of ATR
+        int ATRHandle = iATR(signal.symbol, 0, itAtrMAPeriod);  // returns a handle for ATR
+        double Ask = normalizeAsk(signal.symbol);
+        double Bid = normalizeBid(signal.symbol);
         info(StringFormat("Calculating SL for %s", signal.str()));
-        double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+        double point = SymbolInfoDouble(signal.symbol, SYMBOL_POINT);
         info(StringFormat("Ask:%f , Bid: %f , Point: %f", Ask, Bid, point));
 
         ArraySetAsSeries(ATRValue, true);
 
         if (CopyBuffer(ATRHandle, 0, 0, 1, ATRValue) > 0 && signal.go != GO_NOTHING) {
             double atrValue = ATRValue[0];
-            info(StringFormat("ATR Value %f", atrValue));
+            info(StringFormat("ATR (%f), SL = %d x ATR, TP = %d x SL ", atrValue, itsScale, itsTakeProfitRatio));
 
             //SL = 2* atr & TP = 3 * SL; (1:3)
             if (signal.go == GO_LONG) {
@@ -52,6 +52,8 @@ class ATRBasedSLTPMarketPricer {
             }
             signal.SL = MathAbs(signal.entry - signal.stopLoss) / point;
             signal.TP = MathAbs(signal.entry - signal.takeProfit) / point;
+        } else {
+            warn("There was no dignal (long/short) specified");
         }
         info(StringFormat("%s - UPDATED Signal %s", tsDate(TimeCurrent()), signal.str()));
     }

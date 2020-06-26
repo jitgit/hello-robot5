@@ -51,11 +51,11 @@ class BBSignalScanner : public SignalScanner {
     }
 
    public:
-    SignalResult scan() {
+    SignalResult *scan() {
         MqlTick current;
         SymbolInfoTick(_Symbol, current);
 
-        SignalResult result = {GO_NOTHING, -1.0, -1.0, -1.0};
+        SignalResult *result = new SignalResult(_Symbol);  //{GO_NOTHING, -1.0, -1.0, -1.0};
 
         debug(StringFormat("Ask :%f, Bid :%f", current.ask, current.bid));
         debug(StringFormat("itsBBPeriod(%d), itsRSIPeriod(%d), itsEntrySD(%f), itsStopLossSD:(%f), itsTakeProfitSD:(%f)", itsBBPeriod, itsRSIPeriod, itsEntrySD, itsStopLossSD, itsTakeProfitSD));

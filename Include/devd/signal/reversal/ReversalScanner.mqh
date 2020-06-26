@@ -47,30 +47,30 @@ class ReversalScanner : public SignalScanner {
     }
 
    public:
-    SignalResult scan() {
-        MqlTick current;
-        SymbolInfoTick(_Symbol, current);
+    SignalResult *scan(string symbol) {
+        SignalResult *signal = new SignalResult(symbol);  //{GO_NOTHING, -1.0, -1.0, -1.0};
 
-        SignalResult result = {GO_NOTHING, -1.0, -1.0, -1.0};
+        MqlTick current;
+        SymbolInfoTick(signal.symbol, current);
 
         debug(StringFormat("Ask :%f, Bid :%f", current.ask, current.bid));
         debug(StringFormat("itsBBPeriod(%d), itsRSIPeriod(%d), itsEntrySD(%f), itsStopLossSD:(%f), itsTakeProfitSD:(%f)", itsBBPeriod, itsRSIPeriod, itsEntrySD, itsStopLossSD, itsTakeProfitSD));
 
         double rsiBuffer[];
-        int rsi_handle = iRSI(_Symbol, _Period, itsRSIPeriod, PRICE_CLOSE);
+        int rsi_handle = iRSI(signal.symbol, _Period, itsRSIPeriod, PRICE_CLOSE);
         CopyBuffer(rsi_handle, 0, 0, 3, rsiBuffer);
         double rsiValue = NormalizeDouble(rsiBuffer[0], 2);
-        double open = iOpen(_Symbol, _Period, 0);
+        double open = iOpen(signal.symbol, _Period, 0);
 
         //TODO check more here
         if (rsiValue < itsRSIUpperBound) {
-            result.go = GO_LONG;
+            signal.go = GO_LONG;
         }
         if (rsiValue > itsRSILowerBound) {
-            result.go = GO_SHORT;
+            signal.go = GO_SHORT;
         }
 
-        return result;
+        return signal;
     };
 
     int magic() {

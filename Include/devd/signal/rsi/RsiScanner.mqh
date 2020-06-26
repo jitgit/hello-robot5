@@ -15,11 +15,11 @@ class RsiScanner : public SignalScanner {
         itsRSILowerBound = rsiLowerBound;
     }
 
-    SignalResult scan() {
-        SignalResult result = {GO_NOTHING, -1.0, -1.0, -1.0};
+    SignalResult* scan(string symbol) {
+        SignalResult* result = new SignalResult(symbol);
 
         double rsiBuffer[];
-        int rsi_handle = iRSI(_Symbol, _Period, itsRSIPeriod, PRICE_CLOSE);
+        int rsi_handle = iRSI(symbol, _Period, itsRSIPeriod, PRICE_CLOSE);
         CopyBuffer(rsi_handle, 0, 0, 1, rsiBuffer);
         double rsiValue = NormalizeDouble(rsiBuffer[0], 2);
 
@@ -35,12 +35,12 @@ class RsiScanner : public SignalScanner {
         return result;
     };
 
-    SignalResult scan(ENUM_TIMEFRAMES &timeFrames[]) {
-        SignalResult result = {GO_NOTHING, -1.0, -1.0, -1.0};
+    SignalResult* scan(string symbol, ENUM_TIMEFRAMES& timeFrames[]) {
+        SignalResult* result = new SignalResult(symbol);  //{GO_NOTHING, -1.0, -1.0, -1.0};
         for (int i = 0; i < ArraySize(timeFrames); i++) {
             ENUM_TIMEFRAMES tf = timeFrames[i];
             double rsiBuffer[];
-            int rsi_handle = iRSI(_Symbol, tf, itsRSIPeriod, PRICE_CLOSE);
+            int rsi_handle = iRSI(symbol, tf, itsRSIPeriod, PRICE_CLOSE);
             CopyBuffer(rsi_handle, 0, 0, 1, rsiBuffer);
             double rsiValue = NormalizeDouble(rsiBuffer[0], 2);
             debug(StringFormat("%s, RSI(%d)[%d , %d], Current RSI:(%f)", timFrameToString(tf), itsRSIPeriod, itsRSILowerBound, itsRSIUpperBound, rsiValue));

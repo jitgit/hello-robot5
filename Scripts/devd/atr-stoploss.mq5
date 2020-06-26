@@ -16,7 +16,7 @@ void OnStart() {
     ATRBasedSLTPMarketPricer *stopLoss = new ATRBasedSLTPMarketPricer(14, 2, 4);
     OrderManager *orderManager = new OrderManager();
     RiskManager riskManager = new RiskManager();
-    SignalResult signal = {GO_LONG, -1.0, -1.0, -1.0};
+    SignalResult *signal = new SignalResult(_Symbol, GO_LONG);
 
     Print("=========================");
 

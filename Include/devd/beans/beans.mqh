@@ -12,7 +12,9 @@ enum GO {
     GO_SHORT
 };
 
-struct SignalResult {
+class SignalResult {
+   public:
+    string symbol;
     GO go;
     double entry;
     double stopLoss;
@@ -20,7 +22,17 @@ struct SignalResult {
     int SL;
     int TP;
 
+    SignalResult(string sym, GO longShort = GO_NOTHING) {
+        symbol = sym;
+        go = longShort;
+        entry = 0.0;
+        stopLoss = 0.0;
+        takeProfit = 0.0;
+        SL = 0;
+        TP = 0;
+    }
+
     string str() {
-        return StringFormat("Signal - (GO: %d, entryPrice: %f, stopLoss(%d): %f, takeProfit(%d): %f)", go, entry, SL, stopLoss, TP, takeProfit);
+        return StringFormat("Signal %s - (GO: %d, entryPrice: %f, stopLoss(%d): %f, takeProfit(%d): %f)", symbol, go, entry, SL, stopLoss, TP, takeProfit);
     }
 };

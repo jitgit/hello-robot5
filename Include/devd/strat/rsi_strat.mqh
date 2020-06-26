@@ -42,7 +42,7 @@ void main() {
         PrintCurrencyInfo();
 
         ENUM_TIMEFRAMES TF[] = {PERIOD_H4};  //Scanning multiple time frames
-        SignalResult signal = scanner.scan(TF);
+        SignalResult *signal = scanner.scan(_Symbol, TF);
 
         if (signal.go == GO_LONG || signal.go == GO_SHORT) {
             debug("Booking order: " + signal.str());

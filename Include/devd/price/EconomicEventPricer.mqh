@@ -24,10 +24,10 @@ class EconomicEventPricer {
     void addEntryStopLossAndTakeProfit(SignalResult &signal, int pipDistance) {
         double stopLoss = 0;
         double takeProfit = 0;
-        double Ask = normalizeAsk(_Symbol);
-        double Bid = normalizeBid(_Symbol);
+        double Ask = normalizeAsk(signal.symbol);
+        double Bid = normalizeBid(signal.symbol);
         debug(StringFormat("Calculating SL for %s", signal.str()));
-        double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+        double point = SymbolInfoDouble(signal.symbol, SYMBOL_POINT);
         debug(StringFormat("Ask: %f, Bid: %f, Point(%f), Pip Distance(%d)", Ask, Bid, point, pipDistance));
 
         if (signal.go != GO_NOTHING) {
@@ -35,8 +35,8 @@ class EconomicEventPricer {
             signal.TP = 300;  // TODO can be 300 as in case of Economic Event there is expected a huge spike
 
             if (signal.go == GO_LONG) {
-                signal.entry = Ask + (pipDistance * point);         //Closes to ASK for a Pending order
-                signal.stopLoss = 0;                                //SL at BE, as we will have a sudden spike from news event
+                signal.entry = Ask + (pipDistance * point);     //Closes to ASK for a Pending order
+                signal.stopLoss = 0;                            //SL at BE, as we will have a sudden spike from news event
                 signal.takeProfit = Bid + (signal.TP * point);  //
             }
 

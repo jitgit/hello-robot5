@@ -4,13 +4,13 @@ class SignalScanner {
    public:
     SignalScanner() {
     }
-    virtual SignalResult scan() {
-        SignalResult result = {GO_NOTHING, -1.0, -1.0, -1.0};
+    virtual SignalResult* scan(string symbol) {
+        SignalResult* result = new SignalResult(symbol);
         return result;
     }
 
-    virtual SignalResult scan(ENUM_TIMEFRAMES &timeFrames[]) {
-        SignalResult result = {GO_NOTHING, -1.0, -1.0, -1.0};
+    virtual SignalResult* scan(string symbol, ENUM_TIMEFRAMES& timeFrames[]) {
+        SignalResult* result = new SignalResult(symbol);
         return result;
     }
 

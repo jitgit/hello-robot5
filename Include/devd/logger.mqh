@@ -1,14 +1,17 @@
 #property strict
 input bool LOG_DEBUG_LEVEL = true;
+input bool LOG_INFO_LEVEL = true;
 input bool LOG_WARN_LEVEL = true;
-
-void info(string s) {
-    Print("INFO - " + s);
-}
 
 void debug(string s) {
     if (LOG_DEBUG_LEVEL) {
         Print("DBUG - " + s);
+    }
+}
+
+void info(string s) {
+    if (LOG_INFO_LEVEL) {
+        Print("INFO - " + s);
     }
 }
 

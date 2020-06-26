@@ -18,26 +18,26 @@ class RiskManager {
         itsRiskPercentage = riskPercentage;
     }
 
-    double optimalLotSizeOnMarketPrice(bool isLong, int SL, int TP, double maxRiskPerc) {
+    double optimalLotSizeOnMarketPrice(string symbol, bool isLong, int SL, int TP, double maxRiskPerc) {
         double accBalance = AccountInfoDouble(ACCOUNT_BALANCE);
         double accEquity = AccountInfoDouble(ACCOUNT_EQUITY);
         double minBalance = MathMin(accBalance, accEquity);
 
-        double tickSize = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_SIZE);
-        double tickValue = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_VALUE);
-        int digit = int(SymbolInfoInteger(_Symbol, SYMBOL_DIGITS));
-        double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
-        double Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-        double Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-        double spreadPips = SymbolInfoInteger(_Symbol, SYMBOL_SPREAD);
-        long stopLossLevel = SymbolInfoInteger(_Symbol, SYMBOL_TRADE_STOPS_LEVEL);
+        double tickSize = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_SIZE);
+        double tickValue = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE);
+        int digit = int(SymbolInfoInteger(symbol, SYMBOL_DIGITS));
+        double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
+        double Ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
+        double Bid = SymbolInfoDouble(symbol, SYMBOL_BID);
+        double spreadPips = SymbolInfoInteger(symbol, SYMBOL_SPREAD);
+        long stopLossLevel = SymbolInfoInteger(symbol, SYMBOL_TRADE_STOPS_LEVEL);
 
         double valueToRisk = (maxRiskPerc / 100) * minBalance;
 
         debug(StringFormat("Balance :%f, Equity :%f, Risk :%f", accBalance, accEquity, valueToRisk));
-        debug(StringFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), _Point:(%f)", tickValue, tickSize, stopLossLevel, _Point));
+        debug(StringFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), _Point:(%f)", tickValue, tickSize, stopLossLevel, point));
         debug(StringFormat("PIPS TakeProfit(%d), StopLoss:(%d)", TP, SL));
-        debug(StringFormat("Ask:%f , Bid: %f", Ask, Bid));
+        debug(StringFormat("Ask :%f , Bid :%f", Ask, Bid));
 
         debug(StringFormat("Spread Pips(%f) (Ask-Bid): %f", spreadPips, spreadPips * point));
         double lotSize = 0;
@@ -47,13 +47,13 @@ class RiskManager {
             double buy_sl = NormalizeDouble(Bid - SL * point, digit);
             debug(StringFormat("BUY  TP(%f) > (%f) > SL(%f)", buy_tp, Ask, buy_sl));
 
-            lotSize = calculateLotSize(valueToRisk, SL, TP, buy_sl);
+            lotSize = calculateLotSize(symbol, valueToRisk, SL, TP, buy_sl);
         } else {
             //Sell SL/TP calcuated based on Ask due to Spread
             double sell_tp = NormalizeDouble(Ask - TP * point, digit);
             double sell_sl = NormalizeDouble(Ask + SL * point, digit);
             debug(StringFormat("SELL TP(%f) < (%f) < SL(%f)", sell_tp, Bid, sell_sl));
-            lotSize = calculateLotSize(valueToRisk, SL, TP, sell_sl);
+            lotSize = calculateLotSize(symbol, valueToRisk, SL, TP, sell_sl);
         }
         return lotSize;
     }
@@ -63,19 +63,19 @@ class RiskManager {
         double accEquity = AccountInfoDouble(ACCOUNT_EQUITY);
         double minBalance = MathMin(accBalance, accEquity);
 
-        double tickSize = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_SIZE);
-        double tickValue = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_VALUE);
-        int digit = int(SymbolInfoInteger(_Symbol, SYMBOL_DIGITS));
-        double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
-        double Ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-        double Bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
-        double spreadPips = SymbolInfoInteger(_Symbol, SYMBOL_SPREAD);
-        long stopLossLevel = SymbolInfoInteger(_Symbol, SYMBOL_TRADE_STOPS_LEVEL);
+        double tickSize = SymbolInfoDouble(signal.symbol, SYMBOL_TRADE_TICK_SIZE);
+        double tickValue = SymbolInfoDouble(signal.symbol, SYMBOL_TRADE_TICK_VALUE);
+        int digit = int(SymbolInfoInteger(signal.symbol, SYMBOL_DIGITS));
+        double point = SymbolInfoDouble(signal.symbol, SYMBOL_POINT);
+        double Ask = SymbolInfoDouble(signal.symbol, SYMBOL_ASK);
+        double Bid = SymbolInfoDouble(signal.symbol, SYMBOL_BID);
+        double spreadPips = SymbolInfoInteger(signal.symbol, SYMBOL_SPREAD);
+        long stopLossLevel = SymbolInfoInteger(signal.symbol, SYMBOL_TRADE_STOPS_LEVEL);
 
         double valueToRisk = (maxRiskPerc / 100) * minBalance;
 
         debug(StringFormat("Balance :%f, Equity :%f, Risk :%f", accBalance, accEquity, valueToRisk));
-        debug(StringFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), _Point:(%f)", tickValue, tickSize, stopLossLevel, _Point));
+        debug(StringFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), _Point:(%f)", tickValue, tickSize, stopLossLevel, point));
         debug(StringFormat("Ask:%f , Bid: %f", Ask, Bid));
 
         debug(StringFormat("Spread (%f)Pips (Ask-Bid):%f", spreadPips, spreadPips * point));
@@ -86,37 +86,38 @@ class RiskManager {
             double buy_sl = NormalizeDouble(Bid - signal.SL * point, digit);
             debug(StringFormat("BUY  TP(%f) > (%f) > SL(%f)", buy_tp, Ask, buy_sl));
 
-            lotSize = calculateLotSize(valueToRisk, signal.SL, signal.TP, buy_sl);
+            lotSize = calculateLotSize(signal.symbol, valueToRisk, signal.SL, signal.TP, buy_sl);
         } else if (signal.go == GO_SHORT) {
             //Sell SL/TP calcuated based on Ask due to Spread
             double sell_tp = NormalizeDouble(Ask - signal.TP * point, digit);
             double sell_sl = NormalizeDouble(Ask + signal.SL * point, digit);
             debug(StringFormat("SELL TP(%f) < (%f) < SL(%f)", sell_tp, Bid, sell_sl));
-            lotSize = calculateLotSize(valueToRisk, signal.SL, signal.TP, sell_sl);
+            lotSize = calculateLotSize(signal.symbol, valueToRisk, signal.SL, signal.TP, sell_sl);
         }
         return lotSize;
     }
 
-    double calculateLotSize(double valueToRisk, int SL, int TP, double slPrice) {
-        double tickSize = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_SIZE);
-        double tickValue = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_VALUE);
+    double calculateLotSize(string symbol, double valueToRisk, int SL, int TP, double slPrice) {
+        double tickSize = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_SIZE);
+        double tickValue = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE);
         double _lotcalculation = valueToRisk / (slPrice * (tickValue / tickSize));
 
         //rounding & checking min/max allowed
-        double min_lot = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
-        double max_lot = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
-        int lotdigits = (int)-MathLog(SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP));
+        double min_lot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MIN);
+        double max_lot = SymbolInfoDouble(symbol, SYMBOL_VOLUME_MAX);
+        int lotdigits = (int)-MathLog(SymbolInfoDouble(symbol, SYMBOL_VOLUME_STEP));
         double lots = NormalizeDouble(_lotcalculation, lotdigits);
         if (lots < min_lot) lots = min_lot;
         if (lots > max_lot) lots = max_lot;
         double roundedDown = MathRoundDown(lots, 0.01);
         info(StringFormat("===> LotSize rounded down  %f ==> %f", _lotcalculation, roundedDown));
+
         return roundedDown;
     }
 
     double MathRoundDown(double v, double to) { return to * MathFloor(v / to); }
 
-    double optimalLotSizeWithPips(double maxRiskPerc, int maxLossInPips) {
+    double optimalLotSizeWithPips(string symbol, double maxRiskPerc, int maxLossInPips) {
         double profit = AccountInfoDouble(ACCOUNT_PROFIT);
         double accBalance = AccountInfoDouble(ACCOUNT_BALANCE);
         string accCurr = AccountInfoString(ACCOUNT_CURRENCY);
@@ -124,8 +125,8 @@ class RiskManager {
         double maxLoss = accEquity * maxRiskPerc;
 
         double lotSize = 100000;  //MarketInfo(_Symbol, MODE_LOTSIZE);
-        double tickSize = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_SIZE);
-        double tickValue = SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_VALUE);
+        double tickSize = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_SIZE);
+        double tickValue = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE);
 
         tickValue = tickValue;
         if (_Digits <= 3)  //handling JPY
@@ -145,13 +146,13 @@ class RiskManager {
         }
     }
 
-    double optimalLotSize(double maxRiskPerc, double entryPrice, double stopLoss) {
+    double optimalLotSize(string symbol, double maxRiskPerc, double entryPrice, double stopLoss) {
         int maxLossInPips = MathAbs(entryPrice - stopLoss) / GetPipValueFromDigits();
-        return optimalLotSizeWithPips(maxRiskPerc, maxLossInPips);
+        return optimalLotSizeWithPips(symbol, maxRiskPerc, maxLossInPips);
     }
 
-    double optimalLotSize(double entryPrice, double stopLoss) {
-        return optimalLotSize(itsRiskPercentage, entryPrice, stopLoss);
+    double optimalLotSize(string symbol, double entryPrice, double stopLoss) {
+        return optimalLotSize(symbol, itsRiskPercentage, entryPrice, stopLoss);
     }
 };
 //+------------------------------------------------------------------+

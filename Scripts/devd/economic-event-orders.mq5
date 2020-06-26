@@ -13,13 +13,12 @@
 #include <devd/price/EconomicEventPricer.mqh>
 
 void OnStart() {
-    EconomicEventPricer *newsPricer = new EconomicEventPricer();
-    OrderManager *orderManager = new OrderManager();
+    EconomicEventPricer* newsPricer = new EconomicEventPricer();
+    OrderManager* orderManager = new OrderManager();
     RiskManager riskManager = new RiskManager();
 
     Print("========================= BUY ORDER =========================");
-
-    SignalResult longSignal = {GO_LONG, -1.0, -1.0, -1.0};
+    SignalResult* longSignal = new SignalResult(_Symbol, GO_LONG);
     //Calculating entry, SL,TP
     newsPricer.addEntryStopLossAndTakeProfit(longSignal, 12);
     //Calculating Lot Size
@@ -29,7 +28,7 @@ void OnStart() {
 
     Print("========================= SELL ORDER =========================");
 
-    SignalResult shortSignal = {GO_SHORT, -1.0, -1.0, -1.0};
+    SignalResult* shortSignal = new SignalResult(_Symbol, GO_SHORT);
     //Calculating entry, SL,TP
     newsPricer.addEntryStopLossAndTakeProfit(shortSignal, 12);
     //Calculating Lot Size
