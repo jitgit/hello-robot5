@@ -23,14 +23,14 @@ void main() {
     int SL = 100;
     int TP = 2 * 100;
 
-    /*SignalScanner *scanner = new BBSignalScanner(BB_SD_ENTRY, BB_SD_STOPLOSS, BB_SD_TAKEPROFIT, BB_PERIOD, RSI_PERIOD, RSI_UPPER_BOUND, RSI_LOWER_BOUND);
+    SignalScanner *scanner = new BBSignalScanner(BB_SD_ENTRY, BB_SD_STOPLOSS, BB_SD_TAKEPROFIT, BB_PERIOD, RSI_PERIOD, RSI_UPPER_BOUND, RSI_LOWER_BOUND);
     OrderManager *orderManager = new OrderManager();
     AccountManager *accountManager = new AccountManager();
     RiskManager *riskManager = new RiskManager();
-    OrderOptimizer *ordeOptimizer = new OrderOptimizer();
-    long orderIds[];
-    int anyExistingOrders = orderManager.getTotalOrderByMagicNum(scanner.magicNumber(), orderIds);
-    debug(StringFormat("Magic Number(%d), MaxOrder(%d), Exiting(%d)", scanner.magicNumber(), MAX_ORDER_THREADHOLD, anyExistingOrders));
+    TradeOptimizer *ordeOptimizer = new TradeOptimizer();
+
+    int anyExistingOrders = orderManager.getTotalOrderByMagicNum(scanner.magic());
+    debug(StringFormat("Magic Number(%d), MaxOrder(%d), Exiting(%d)", scanner.magic(), MAX_ORDER_THREADHOLD, anyExistingOrders));
 
     if (anyExistingOrders >= MAX_ORDER_THREADHOLD) {
         debug("MAX ORDER THREASHOLD REACHED. Optimizing the order ...");
@@ -39,18 +39,41 @@ void main() {
         accountManager.printAccountInfo();
         PrintCurrencyInfo();
 
-        SignalResult signal = scanner.scan();
+        SignalResult *signal = scanner.scan(_Symbol);
         debug(signal.str());
 
         if (signal.go == GO_LONG || signal.go == GO_SHORT) {
             debug("Booking order: " + signal.str());
             bool isLong = signal.go == GO_LONG;
-            double optimalLotSize = riskManager.optimalLotSize(isLong,SL,TP, MAX_RISK_PERCENTAGE);
-            orderManager.bookTrade(isLong, signal.entry, signal.stopLoss, signal.takeProfit, optimalLotSize, scanner.magicNumber());
+            double optimalLotSize = riskManager.optimalLotSize(isLong, SL, TP, MAX_RISK_PERCENTAGE);
+            orderManager.bookLimitOrder(isLong, signal.entry, signal.stopLoss, signal.takeProfit, optimalLotSize, scanner.magic());
         } else {
-            debug("NO SIGNAL FROM SCAN RESULT");
+            debug("NO SIGNAL FROM SCAN RESULT." + signal.str());
         }
+
+        /////////////////
+
+        /*if (signal.go == GO_LONG || signal.go == GO_SHORT) {
+            debug("Booking order: " + signal.str());
+
+            //Calculating entry, SL,TP
+            atrPricer.addEntryStopLossAndTakeProfit(signal);
+
+            bool isLong = signal.go == GO_LONG;
+            //Calculating Lot Size
+            double optimalLotSize = riskManager.optimalLotSizeFrom(signal, MAX_RISK_PERCENTAGE);
+
+            //Try to book the order
+            bool success = orderManager.bookLimitOrder(signal, optimalLotSize, scanner.magic());
+
+            //Closing counter trades
+            if (success) { //TODO need to test this
+                tradeManager.closeCounterTrades(signal, scanner.magic());
+            }
+        } else {
+            debug("NO SIGNAL FROM SCAN RESULT." + signal.str());
+        }*/
     }
     //Optimize TP on existing trades if any by this EA
-    ordeOptimizer.optimizeTakeProfit(scanner.magicNumber(), orderIds, scanner.optimizedLongTP(), scanner.optimizedShortTP());   */
+    //ordeOptimizer.optimizeTakeProfit(scanner.magicNumber(), orderIds, scanner.optimizedLongTP(), scanner.optimizedShortTP());   */
 }

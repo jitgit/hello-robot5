@@ -18,8 +18,8 @@ class SignalScanner {
         return -1;
     }
 
-    virtual double optimizedLongTP() {
+    virtual double optimizedLongTP(string symbol) {
         return 0.0;
     }
-    virtual double optimizedShortTP() { return 0.0; }
+    virtual double optimizedShortTP(string symbol) { return 0.0; }
 };

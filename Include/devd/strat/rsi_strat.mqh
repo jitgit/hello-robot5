@@ -58,7 +58,7 @@ void main() {
             bool success = orderManager.bookLimitOrder(signal, optimalLotSize, scanner.magic());
 
             //Closing counter trades
-            if (success) {
+            if (success) {  //TODO need to test this
                 tradeManager.closeCounterTrades(signal, scanner.magic());
             }
         } else {
