@@ -36,10 +36,11 @@ void main() {
         debug("MAX ORDER THREASHOLD REACHED. Optimizing the order ...");
         return;
     } else {
+        string symbol = _Symbol;
         accountManager.printAccountInfo();
-        PrintCurrencyInfo();
+        PrintCurrencyInfo(symbol);
 
-        SignalResult *signal = scanner.scan(_Symbol);
+        SignalResult *signal = scanner.scan(symbol);
         debug(signal.str());
 
         if (signal.go == GO_LONG || signal.go == GO_SHORT) {
@@ -50,29 +51,6 @@ void main() {
         } else {
             debug("NO SIGNAL FROM SCAN RESULT." + signal.str());
         }
-
-        /////////////////
-
-        /*if (signal.go == GO_LONG || signal.go == GO_SHORT) {
-            debug("Booking order: " + signal.str());
-
-            //Calculating entry, SL,TP
-            atrPricer.addEntryStopLossAndTakeProfit(signal);
-
-            bool isLong = signal.go == GO_LONG;
-            //Calculating Lot Size
-            double optimalLotSize = riskManager.optimalLotSizeFrom(signal, MAX_RISK_PERCENTAGE);
-
-            //Try to book the order
-            bool success = orderManager.bookLimitOrder(signal, optimalLotSize, scanner.magic());
-
-            //Closing counter trades
-            if (success) { //TODO need to test this
-                tradeManager.closeCounterTrades(signal, scanner.magic());
-            }
-        } else {
-            debug("NO SIGNAL FROM SCAN RESULT." + signal.str());
-        }*/
     }
     //Optimize TP on existing trades if any by this EA
     //ordeOptimizer.optimizeTakeProfit(scanner.magicNumber(), orderIds, scanner.optimizedLongTP(), scanner.optimizedShortTP());   */

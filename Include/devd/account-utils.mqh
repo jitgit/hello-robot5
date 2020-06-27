@@ -1,9 +1,11 @@
 #property strict
 
-void PrintCurrencyInfo() {
+void PrintCurrencyInfo(string symbol) {
     MqlTick current;
-    SymbolInfoTick(_Symbol, current);
-    debug(StringFormat("Price [%f, %f], TL:%dm , %f , _Digits: %d", current.bid, current.ask, _Period, _Point, _Digits));
+    SymbolInfoTick(symbol, current);
+    int digit = int(SymbolInfoInteger(symbol, SYMBOL_DIGITS));
+    double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
+    debug(StringFormat("Price [%f, %f], TL:%dm , %f , _Digits: %d", current.bid, current.ask, _Period, point, digit));
     /*debug(StringFormat("MinLot: %f SL Level: %f", MarketInfoMQL4(_Symbol, MODE_MINLOT), MarketInfoMQL4(_Symbol, MODE_STOPLEVEL)));
     debug(StringFormat("Day Range - [%f , %f]", MarketInfoMQL4(_Symbol, MODE_LOW), MarketInfoMQL4(_Symbol, MODE_HIGH)));*/
 }

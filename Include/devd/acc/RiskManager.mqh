@@ -35,7 +35,7 @@ class RiskManager {
         double valueToRisk = (maxRiskPerc / 100) * minBalance;
 
         debug(StringFormat("Balance :%f, Equity :%f, Risk :%f", accBalance, accEquity, valueToRisk));
-        debug(StringFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), _Point:(%f)", tickValue, tickSize, stopLossLevel, point));
+        debug(StringFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), Point:(%f)", tickValue, tickSize, stopLossLevel, point));
         debug(StringFormat("PIPS TakeProfit(%d), StopLoss:(%d)", TP, SL));
         debug(StringFormat("Ask :%f , Bid :%f", Ask, Bid));
 
@@ -75,7 +75,7 @@ class RiskManager {
         double valueToRisk = (maxRiskPerc / 100) * minBalance;
 
         debug(StringFormat("Balance :%f, Equity :%f, Risk :%f", accBalance, accEquity, valueToRisk));
-        debug(StringFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), _Point:(%f)", tickValue, tickSize, stopLossLevel, point));
+        debug(StringFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), Point:(%f)", tickValue, tickSize, stopLossLevel, point));
         debug(StringFormat("Ask:%f , Bid: %f", Ask, Bid));
 
         debug(StringFormat("Spread (%f)Pips (Ask-Bid):%f", spreadPips, spreadPips * point));
