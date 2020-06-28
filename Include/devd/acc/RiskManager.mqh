@@ -80,8 +80,10 @@ class RiskManager {
 
         debug(StringFormat("Spread (%f)Pips (Ask-Bid):%f", spreadPips, spreadPips * point));
 
-        if (Ask == 0 || Bid == 0)  // CCYPAIR doesn't exists on the broker
+        if (Ask == 0 || Bid == 0|| tickValue ==0) { // CCYPAIR doesn't exists on the broker
+            warn ("Currrency pair is not supported on broker, Ask|Bid|TickValue ==0");
             return 0;
+            }
 
         double lotSize = 0;
         if (signal.go == GO_LONG) {
