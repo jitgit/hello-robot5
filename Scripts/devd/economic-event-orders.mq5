@@ -11,7 +11,8 @@
 #include <devd/include-base.mqh>
 #include <devd/order/OrderManager.mqh>
 #include <devd/price/EconomicEventPricer.mqh>
-
+int MAGIC_NUMBER = 007;
+OrderManager* orderManager = new OrderManager();
 void add(EconomicEvent* event, string ccyPair) {
     int s = ArraySize(event.pairs);
     ArrayResize(event.pairs, s + 1);
@@ -21,10 +22,10 @@ void add(EconomicEvent* event, string ccyPair) {
 void OnInit() {
     CArrayObj* events = new CArrayObj;
     EconomicEvent* NZ_IR = new EconomicEvent(IR, "NZD", 2, "2020-06-27 22:14:00");
-    //add(NZ_IR, "AUDNZD");
+    add(NZ_IR, "AUDNZD");
     //add(NZ_IR, "NZDJPY");
     //add(NZ_IR, "NZDHKD");
-    add(NZ_IR, "NZDSGD");
+    //add(NZ_IR, "NZDSGD");
     //add(NZ_IR, "GBPNZD");
     //add(NZ_IR, "EURNZD");
     //add(NZ_IR, "NZDCHF");
@@ -36,7 +37,7 @@ void OnInit() {
         info(e.str());
         for (int j = 0; j < ArraySize(e.pairs); j++) {
             string symbol = e.pairs[j];
-            bool result = submitBuySellOrder(symbol, 12);
+            bool result = submitBuySellOrder(symbol, 10);
             info(StringFormat("######### CCY PAIR %s = " + result, symbol));
         }
     }
@@ -44,7 +45,7 @@ void OnInit() {
 
 bool submitBuySellOrder(string symbol, int pipDisplacement) {
     EconomicEventPricer* newsPricer = new EconomicEventPricer();
-    OrderManager* orderManager = new OrderManager();
+
     RiskManager riskManager = new RiskManager();
 
     info(StringFormat("========================= BUY (%s) =========================", symbol));
@@ -54,7 +55,7 @@ bool submitBuySellOrder(string symbol, int pipDisplacement) {
     //Calculating Lot Size
     double longLotSize = riskManager.optimalLotSizeFrom(longSignal, 2.0);
     //Try to book the order without SL & TP
-    bool buySuccess = orderManager.bookStopOrder(longSignal, longLotSize, 0007);  //We don't want SL or TP
+    bool buySuccess = orderManager.bookStopOrder(longSignal, longLotSize, MAGIC_NUMBER);  //We don't want SL or TP
 
     info(StringFormat("========================= SELL (%s) =========================", symbol));
 
@@ -100,61 +101,16 @@ void OnTradeTransaction(const MqlTradeTransaction& trans,
     string trans_symbol = trans.symbol;
     ENUM_TRADE_TRANSACTION_TYPE trans_type = trans.type;
 
-   PrintFormat("===========> Trade Request Symbol:%s , Comment:%s ", request.symbol, result.comment);
-   PrintFormat("===========> Trade Result Symbol:%s , Comment:%s ", GetTradeTransactionResultRetcodeID(result.retcode), result.comment);
+    PrintFormat("===================================================================================================");
+    PrintFormat("Transaction Symbol(%s) ,Type(%s), State(%s), Order Type(%s)", trans.symbol, EnumToString(trans.type), EnumToString(trans.order_state), EnumToString(trans.order_type));
+    PrintFormat("Request Symbol(%s), Action(%s), Type(%s),  magic(%d), Comment(%s)", request.symbol, EnumToString(request.action), EnumToString(request.type), request.magic, request.comment);
+    //PrintFormat("Result :%s, %s ", GetTradeTransactionResultRetcodeID(result.retcode), result.comment);
 
-    switch (trans.type) {            
-        case TRADE_TRANSACTION_POSITION: { // position modification
-            ulong pos_ID = trans.position;
-            PrintFormat("MqlTradeTransaction: Position  #%d %s modified: SL=%.5f TP=%.5f", pos_ID, trans_symbol, trans.price_sl, trans.price_tp);
-            break;
-        }
-        case TRADE_TRANSACTION_REQUEST:  // sending a trade request
-            PrintFormat("MqlTradeTransaction: TRADE_TRANSACTION_REQUEST");
-            break;
-        case TRADE_TRANSACTION_DEAL_ADD: {  // adding a trade
-            ulong lastDealID = trans.deal;
-            ENUM_DEAL_TYPE lastDealType = trans.deal_type;
-            double lastDealVolume = trans.volume;
-            //--- Trade ID in an external system - a ticket assigned by an exchange
-            string Exchange_ticket = "";
-            if (HistoryDealSelect(lastDealID))
-                Exchange_ticket = HistoryDealGetString(lastDealID, DEAL_EXTERNAL_ID);
-            if (Exchange_ticket != "")
-                Exchange_ticket = StringFormat("(Exchange deal=%s)", Exchange_ticket);
-
-            PrintFormat("MqlTradeTransaction: %s deal #%d %s %s %.2f lot   %s", EnumToString(trans_type),
-                        lastDealID, EnumToString(lastDealType), trans_symbol, lastDealVolume, Exchange_ticket);
-        } break;
-        case TRADE_TRANSACTION_HISTORY_ADD: {  // adding an order to the history
-            //--- order ID in an external system - a ticket assigned by an Exchange
-            string Exchange_ticket = "";
-            if (lastOrderState == ORDER_STATE_FILLED) {
-                if (HistoryOrderSelect(lastOrderID))
-                    Exchange_ticket = HistoryOrderGetString(lastOrderID, ORDER_EXTERNAL_ID);
-                if (Exchange_ticket != "")
-                    Exchange_ticket = StringFormat("(Exchange ticket=%s)", Exchange_ticket);
-            }
-            PrintFormat("MqlTradeTransaction: %s order #%d %s %s %s   %s", EnumToString(trans_type),
-                        lastOrderID, EnumToString(lastOrderType), trans_symbol, EnumToString(lastOrderState), Exchange_ticket);
-        } break;
-        default: {  // other transactions
-            //--- order ID in an external system - a ticket assigned by Exchange
-            string Exchange_ticket = "";
-            if (lastOrderState == ORDER_STATE_PLACED) {
-                if (OrderSelect(lastOrderID))
-                    Exchange_ticket = OrderGetString(ORDER_EXTERNAL_ID);
-                if (Exchange_ticket != "")
-                    Exchange_ticket = StringFormat("Exchange ticket=%s", Exchange_ticket);
-            }
-            PrintFormat("MqlTradeTransaction: %s order #%d %s %s   %s", EnumToString(trans_type),
-                        lastOrderID, EnumToString(lastOrderType), EnumToString(lastOrderState), Exchange_ticket);
-        } break;
+    //TODO this must be read from result
+    if (trans.type == TRADE_TRANSACTION_HISTORY_ADD && trans.order_state == ORDER_STATE_FILLED) {
+        //If one buy/sell stop is filled we remove the other trade
+        PrintFormat("######## Removing counter trade Symbol(%s), Type(%s), Order Id:" + trans.order, trans.symbol, EnumToString(trans.order_type));
+        ENUM_ORDER_TYPE toDeleteOrderType = trans.order_type == ORDER_TYPE_BUY_STOP ? ORDER_TYPE_SELL_STOP : ORDER_TYPE_BUY_STOP;
+        orderManager.DeleteAllOrdersBy(trans.symbol, MAGIC_NUMBER, toDeleteOrderType, trans.order);
     }
-    //--- order ticket
-    ulong orderID_result = result.order;
-    //string retcode_result=GetRetcodeID(result.retcode);
-    //if(orderID_result!=0)
-    //("MqlTradeResult: order #%d retcode=%s ",orderID_result,retcode_result);
-    //---
 }
