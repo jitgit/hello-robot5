@@ -6,6 +6,8 @@
 #property copyright "Devd"
 #property link "https://www.devd.com"
 
+#include <Object.mqh>
+
 enum GO {
     GO_NOTHING,
     GO_LONG,
@@ -34,5 +36,29 @@ class SignalResult {
 
     string str() {
         return StringFormat("Signal %s - (GO: %d, entryPrice: %f, stopLoss(%d): %f, takeProfit(%d): %f)", symbol, go, entry, SL, stopLoss, TP, takeProfit);
+    }
+};
+
+string EMPLOYMENT_CHANGE = "EMPLOYMENT_CHANGE";
+string IR = "IR";
+string CPI = "CPI";
+
+class EconomicEvent : public CObject {
+   public:
+    string name;
+    int impact;
+    string currency;
+    string pairs[];
+    datetime eventTime;
+
+    EconomicEvent(string n, string curr, int impct, string time) {
+        name = n;
+        currency = curr;
+        impact = impct;
+        eventTime = StringToTime(time);
+    }
+
+    string str() {
+        return StringFormat("EconomicEvent %s - %s(%d), time: %s", currency, name, impact, TimeToString(eventTime));
     }
 };

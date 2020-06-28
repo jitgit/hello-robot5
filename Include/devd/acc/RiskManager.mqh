@@ -79,6 +79,10 @@ class RiskManager {
         debug(StringFormat("Ask:%f , Bid: %f", Ask, Bid));
 
         debug(StringFormat("Spread (%f)Pips (Ask-Bid):%f", spreadPips, spreadPips * point));
+
+        if (Ask == 0 || Bid == 0)  // CCYPAIR doesn't exists on the broker
+            return 0;
+
         double lotSize = 0;
         if (signal.go == GO_LONG) {
             //Buy SL/TP calcuated based on Bid due to Spread
