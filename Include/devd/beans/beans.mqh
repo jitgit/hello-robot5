@@ -50,11 +50,13 @@ class EconomicEvent : public CObject {
     string currency;
     string pairs[];
     datetime eventTime;
+    bool isOrderExecuted;
 
     EconomicEvent(string n, string curr, int impct, string time) {
         name = n;
         currency = curr;
         impact = impct;
+        isOrderExecuted = false;
         eventTime = StringToTime(time);
     }
 

@@ -10,36 +10,91 @@
 #include <devd/acc/RiskManager.mqh>
 #include <devd/include-base.mqh>
 #include <devd/order/OrderManager.mqh>
+#include <devd/order/PositionOptimizer.mqh>
 #include <devd/price/EconomicEventPricer.mqh>
 int MAGIC_NUMBER = 007;
+int POSITION_OPTIMIZE_INTERVAL = 5;  //secs
+long positionOptimizerTick = 0;
+
 OrderManager* orderManager = new OrderManager();
+PositionOptimizer* positionOptimizer = new PositionOptimizer();
+CArrayObj* economic_news;
 void add(EconomicEvent* event, string ccyPair) {
     int s = ArraySize(event.pairs);
     ArrayResize(event.pairs, s + 1);
     event.pairs[s] = ccyPair;
 }
 
-void OnInit() {
-    CArrayObj* events = new CArrayObj;
-    EconomicEvent* NZ_IR = new EconomicEvent(IR, "NZD", 2, "2020-06-27 22:14:00");
+EconomicEvent* build_NZ_IR(string newsTimes) {
+    EconomicEvent* NZ_IR = new EconomicEvent(IR, "NZD", 2, newsTimes);
     add(NZ_IR, "AUDNZD");
-    //add(NZ_IR, "NZDJPY");
+    add(NZ_IR, "NZDJPY");
     //add(NZ_IR, "NZDHKD");
     //add(NZ_IR, "NZDSGD");
-    //add(NZ_IR, "GBPNZD");
-    //add(NZ_IR, "EURNZD");
-    //add(NZ_IR, "NZDCHF");
-    //add(NZ_IR, "NZDUSD");
+    add(NZ_IR, "GBPNZD");
+    add(NZ_IR, "EURNZD");
+    add(NZ_IR, "NZDCHF");
+    add(NZ_IR, "NZDUSD");
+    return NZ_IR;
+}
 
+EconomicEvent* build_NZ_CPI(string newsTimes) {
+    EconomicEvent* NZ_CPI = new EconomicEvent(CPI, "NZD", 2, newsTimes);
+    add(NZ_CPI, "AUDNZD");
+    add(NZ_CPI, "NZDJPY");
+    //add(NZ_IR, "NZDHKD");
+    //add(NZ_IR, "NZDSGD");
+    add(NZ_CPI, "NZDCAD");
+    add(NZ_CPI, "EURNZD");
+    add(NZ_CPI, "NZDUSD");
+    return NZ_CPI;
+}
+
+CArrayObj* buildEcoEvents() {
+    CArrayObj* events = new CArrayObj;
+
+    EconomicEvent* NZ_IR = build_NZ_IR("2020-06-29 11:53:15");
     events.Add(NZ_IR);
-    for (int i = 0; i < events.Total(); i++) {
-        EconomicEvent* e = events.At(i);
-        info(e.str());
-        for (int j = 0; j < ArraySize(e.pairs); j++) {
-            string symbol = e.pairs[j];
-            bool result = submitBuySellOrder(symbol, 10);
-            info(StringFormat("######### CCY PAIR %s = " + result, symbol));
+    return events;
+}
+
+int OnInit() {
+    economic_news = buildEcoEvents();
+
+    EventSetTimer(1);
+    return (INIT_SUCCEEDED);
+}
+
+void OnDeinit() {
+    EventKillTimer();
+}
+
+void OnTimer() {
+    datetime localTime = TimeLocal();
+    //info(StringFormat("About to execute the events. Size(%d)", econmic_news.Total()));
+    for (int i = 0; i < economic_news.Total(); i++) {
+        EconomicEvent* e = economic_news.At(i);
+        datetime event_time = StringToTime(e.eventTime);
+        if (e.isOrderExecuted == false && event_time == localTime) {
+            info("Submitting the Orders for " + e.str());
+            for (int j = 0; j < ArraySize(e.pairs); j++) {
+                string symbol = e.pairs[j];
+                // bool result = submitBuySellOrder(symbol, 10);
+                //debug(StringFormat("######### CCY PAIR %s = " + result, symbol));
+            }
+            e.isOrderExecuted = true;
+            economic_news.Delete(i);
         }
+    }
+    if (economic_news.Total() == 0) {
+        info(StringFormat("Killing Timer as no event left to execute %d", economic_news.Total()));
+        //EventKillTimer();
+    }
+
+    positionOptimizerTick = (positionOptimizerTick + 1) % POSITION_OPTIMIZE_INTERVAL;
+    info(StringFormat("######### tradeOptimizerTick :%d ", positionOptimizerTick));
+    if (positionOptimizerTick == 4) {
+        positionOptimizer.trailingStop(MAGIC_NUMBER);
     }
 }
 
@@ -70,28 +125,6 @@ bool submitBuySellOrder(string symbol, int pipDisplacement) {
     return sellSuccess && buySuccess;
 }
 
-//+------------------------------------------------------------------+
-//| Expert initialization function                                   |
-//+------------------------------------------------------------------+
-/*int OnInit() {
-    EventSetTimer(1);
-    return (INIT_SUCCEEDED);
-}
-
-//+------------------------------------------------------------------+
-//| Timer function                                                   |
-//+------------------------------------------------------------------+
-void OnTimer() {
-    datetime start_time = TimeLocal();
-    datetime event_time = StringToTime("2020-06-27 22:14:00");
-    Print("Timer ... ", start_time, " ", event_time);
-
-    if (start_time == event_time) {
-        Print("Event Time ....... ", start_time);
-        EventKillTimer();
-    }
-}*/
-
 void OnTradeTransaction(const MqlTradeTransaction& trans,
                         const MqlTradeRequest& request,
                         const MqlTradeResult& result) {
@@ -101,15 +134,15 @@ void OnTradeTransaction(const MqlTradeTransaction& trans,
     string trans_symbol = trans.symbol;
     ENUM_TRADE_TRANSACTION_TYPE trans_type = trans.type;
 
-    PrintFormat("===================================================================================================");
-    PrintFormat("Transaction Symbol(%s) ,Type(%s), State(%s), Order Type(%s)", trans.symbol, EnumToString(trans.type), EnumToString(trans.order_state), EnumToString(trans.order_type));
-    PrintFormat("Request Symbol(%s), Action(%s), Type(%s),  magic(%d), Comment(%s)", request.symbol, EnumToString(request.action), EnumToString(request.type), request.magic, request.comment);
-    //PrintFormat("Result :%s, %s ", GetTradeTransactionResultRetcodeID(result.retcode), result.comment);
+    //info("===================================================================================================");
+    //info(StringFormat("Transaction Symbol(%s) ,Type(%s), State(%s), Order Type(%s)", trans.symbol, EnumToString(trans.type), EnumToString(trans.order_state), EnumToString(trans.order_type)));
+    //info(StringFormat("Request Symbol(%s), Action(%s), Type(%s),  magic(%d), Comment(%s)", request.symbol, EnumToString(request.action), EnumToString(request.type), request.magic, request.comment));
+    //info(StringFormat("Result :%s, %s ", GetTradeTransactionResultRetcodeID(result.retcode), result.comment));
 
     //TODO this must be read from result
     if (trans.type == TRADE_TRANSACTION_HISTORY_ADD && trans.order_state == ORDER_STATE_FILLED) {
         //If one buy/sell stop is filled we remove the other trade
-        PrintFormat("######## Removing counter trade Symbol(%s), Type(%s), Order Id:" + trans.order, trans.symbol, EnumToString(trans.order_type));
+        info(StringFormat("######## Removing counter trade Symbol(%s), Type(%s), Order Id:" + trans.order, trans.symbol, EnumToString(trans.order_type)));
         ENUM_ORDER_TYPE toDeleteOrderType = trans.order_type == ORDER_TYPE_BUY_STOP ? ORDER_TYPE_SELL_STOP : ORDER_TYPE_BUY_STOP;
         orderManager.DeleteAllOrdersBy(trans.symbol, MAGIC_NUMBER, toDeleteOrderType, trans.order);
     }

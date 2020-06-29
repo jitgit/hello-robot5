@@ -1,7 +1,7 @@
 #property strict
 #include <devd\include-base.mqh>
 
-class TradeOptimizer {
+class PositionOptimizer {
    private:
     int itsTakeProfit;     //TakeProfit, points
     int itsTrailingStart;  //Trailing Start, points
@@ -11,7 +11,7 @@ class TradeOptimizer {
     int itsSL_lev;         //BE level, points
 
    public:
-    TradeOptimizer(int trailingStop = 0, int trailingStep = 0, int trailingStart = 0, int sL_prof = 0, int sL_lev = 0) {
+    PositionOptimizer(int trailingStop = 0, int trailingStep = 0, int trailingStart = 0, int sL_prof = 0, int sL_lev = 0) {
         itsTrailingStep = trailingStep;
         itsTrailingStop = trailingStop;
         itsTrailingStart = trailingStart;
