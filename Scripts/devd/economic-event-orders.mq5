@@ -12,34 +12,39 @@
 #include <devd/order/OrderManager.mqh>
 #include <devd/order/PositionOptimizer.mqh>
 #include <devd/price/EconomicEventPricer.mqh>
+#include <devd\trailingsl\SARTrailingStop.mqh>
+#include <devd\trailingsl\TrailingStop.mqh>
+
 int MAGIC_NUMBER = 007;
 int POSITION_OPTIMIZE_INTERVAL = 5;  //secs
 long positionOptimizerTick = 0;
 
 OrderManager* orderManager = new OrderManager();
-PositionOptimizer* positionOptimizer = new PositionOptimizer();
-CArrayObj* economic_news;
+//PositionOptimizer* positionOptimizer = new PositionOptimizer(100, 2, 10);
+SARTrailingStop tralingStop = new SARTrailingStop()
+    CArrayObj* economic_news;
+
 void add(EconomicEvent* event, string ccyPair) {
     int s = ArraySize(event.pairs);
     ArrayResize(event.pairs, s + 1);
     event.pairs[s] = ccyPair;
 }
 
-EconomicEvent* build_NZ_IR(string newsTimes) {
-    EconomicEvent* NZ_IR = new EconomicEvent(IR, "NZD", 2, newsTimes);
+EconomicEvent* build_NZ_IR(string newsTime) {
+    EconomicEvent* NZ_IR = new EconomicEvent(IR, "NZD", 2, newsTime);
     add(NZ_IR, "AUDNZD");
-    add(NZ_IR, "NZDJPY");
+    //add(NZ_IR, "NZDJPY");
     //add(NZ_IR, "NZDHKD");
     //add(NZ_IR, "NZDSGD");
-    add(NZ_IR, "GBPNZD");
-    add(NZ_IR, "EURNZD");
-    add(NZ_IR, "NZDCHF");
-    add(NZ_IR, "NZDUSD");
+    //add(NZ_IR, "GBPNZD");
+    //add(NZ_IR, "EURNZD");
+    //add(NZ_IR, "NZDCHF");
+    //add(NZ_IR, "NZDUSD");
     return NZ_IR;
 }
 
-EconomicEvent* build_NZ_CPI(string newsTimes) {
-    EconomicEvent* NZ_CPI = new EconomicEvent(CPI, "NZD", 2, newsTimes);
+EconomicEvent* build_NZ_CPI(string newsTime) {
+    EconomicEvent* NZ_CPI = new EconomicEvent(CPI, "NZD", 2, newsTime);
     add(NZ_CPI, "AUDNZD");
     add(NZ_CPI, "NZDJPY");
     //add(NZ_IR, "NZDHKD");
@@ -53,7 +58,7 @@ EconomicEvent* build_NZ_CPI(string newsTimes) {
 CArrayObj* buildEcoEvents() {
     CArrayObj* events = new CArrayObj;
 
-    EconomicEvent* NZ_IR = build_NZ_IR("2020-06-29 11:53:15");
+    EconomicEvent* NZ_IR = build_NZ_IR("2020-06-29 21:46:00");
     events.Add(NZ_IR);
     return events;
 }
@@ -79,22 +84,24 @@ void OnTimer() {
             info("Submitting the Orders for " + e.str());
             for (int j = 0; j < ArraySize(e.pairs); j++) {
                 string symbol = e.pairs[j];
-                // bool result = submitBuySellOrder(symbol, 10);
-                //debug(StringFormat("######### CCY PAIR %s = " + result, symbol));
+                bool result = submitBuySellOrder(symbol, 10);
+                debug(StringFormat("######### CCY PAIR %s = " + result, symbol));
             }
             e.isOrderExecuted = true;
             economic_news.Delete(i);
         }
     }
-    if (economic_news.Total() == 0) {
+    /*if (economic_news.Total() == 0) {
         info(StringFormat("Killing Timer as no event left to execute %d", economic_news.Total()));
-        //EventKillTimer();
-    }
+        EventKillTimer();
+    }*/
 
     positionOptimizerTick = (positionOptimizerTick + 1) % POSITION_OPTIMIZE_INTERVAL;
-    info(StringFormat("######### tradeOptimizerTick :%d ", positionOptimizerTick));
-    if (positionOptimizerTick == 4) {
-        positionOptimizer.trailingStop(MAGIC_NUMBER);
+    if (positionOptimizerTick == POSITION_OPTIMIZE_INTERVAL - 1) {
+        //info(StringFormat("######### Trailing stop Position :%d ", positionOptimizerTick));
+        //positionOptimizer.trailingStop(MAGIC_NUMBER);
+        tralingStop.updateTrailingStop(MAGIC_NUMBER);
+        positionOptimizerTick = 0;
     }
 }
 

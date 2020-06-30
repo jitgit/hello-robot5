@@ -22,30 +22,36 @@ class PositionOptimizer {
     int trailingStop(int magicNumber) {
         if (itsTrailingStart > 0 && itsTrailingStop > 0) {
             for (int i = 0; i < PositionsTotal(); i++) {
-                if (PositionGetSymbol(i) == _Symbol && PositionGetInteger(POSITION_MAGIC) == magicNumber) {
+                string symbol = PositionGetSymbol(i);
+                double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
+
+                if (PositionGetInteger(POSITION_MAGIC) == magicNumber) {
                     if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_BUY) {
                         ulong ticket = PositionGetTicket(i);
-                        double pp = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+                        double pp = SymbolInfoDouble(symbol, SYMBOL_BID);
                         double sl = PositionGetDouble(POSITION_SL);
                         double op = PositionGetDouble(POSITION_PRICE_OPEN);
                         double tp = PositionGetDouble(POSITION_TP);
 
-                        if (pp - op >= itsTrailingStart * _Point) {
-                            if (sl < pp - (itsTrailingStop + itsTrailingStep) * _Point || sl == 0) {
-                                Modify(ticket, pp - itsTrailingStop * _Point, tp, magicNumber);
+                        debug(StringFormat("BUY OP(%f) , PP(%f)  Diff(%f) >= Trailing start(%f) ", op, pp, pp - op, itsTrailingStart * point));
+                        if (pp - op >= itsTrailingStart * point) {
+                            if (sl < pp - (itsTrailingStop + itsTrailingStep) * point || sl == 0) {
+                                Modify(ticket, pp - itsTrailingStop * point, tp, magicNumber);
                             }
                         }
                     }
                     if (PositionGetInteger(POSITION_TYPE) == POSITION_TYPE_SELL) {
                         ulong ticket = PositionGetTicket(i);
-                        double pp = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+                        double pp = SymbolInfoDouble(symbol, SYMBOL_ASK);
                         double sl = PositionGetDouble(POSITION_SL);
                         double op = PositionGetDouble(POSITION_PRICE_OPEN);
                         double tp = PositionGetDouble(POSITION_TP);
 
-                        if (op - pp >= itsTrailingStart * _Point) {
-                            if (sl > pp + (itsTrailingStop + itsTrailingStep) * _Point || sl == 0) {
-                                Modify(ticket, pp + itsTrailingStop * _Point, tp, magicNumber);
+                        debug(StringFormat("SELL OP(%f) , PP(%f)  Diff(%f) >= Trailing start(%f) ", op, pp, op - pp, itsTrailingStart * point));
+
+                        if (op - pp >= itsTrailingStart * point) {
+                            if (sl > pp + (itsTrailingStop + itsTrailingStep) * point || sl == 0) {
+                                Modify(ticket, pp + itsTrailingStop * point, tp, magicNumber);
                             }
                         }
                     }
