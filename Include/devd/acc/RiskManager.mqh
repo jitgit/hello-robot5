@@ -58,46 +58,36 @@ class RiskManager {
         return lotSize;
     }
 
-    double optimalLotSizeFrom(SignalResult &signal, double maxRiskPerc) {
+    double optimalLotSizeFrom(SignalResult& signal, double maxRiskPerc) {
         double accBalance = AccountInfoDouble(ACCOUNT_BALANCE);
         double accEquity = AccountInfoDouble(ACCOUNT_EQUITY);
         double minBalance = MathMin(accBalance, accEquity);
 
-        double tickSize = SymbolInfoDouble(signal.symbol, SYMBOL_TRADE_TICK_SIZE);
-        double tickValue = SymbolInfoDouble(signal.symbol, SYMBOL_TRADE_TICK_VALUE);
-        int digit = int(SymbolInfoInteger(signal.symbol, SYMBOL_DIGITS));
-        double point = SymbolInfoDouble(signal.symbol, SYMBOL_POINT);
-        double Ask = SymbolInfoDouble(signal.symbol, SYMBOL_ASK);
-        double Bid = SymbolInfoDouble(signal.symbol, SYMBOL_BID);
-        double spreadPips = SymbolInfoInteger(signal.symbol, SYMBOL_SPREAD);
-        long stopLossLevel = SymbolInfoInteger(signal.symbol, SYMBOL_TRADE_STOPS_LEVEL);
+        SymbolData* s = new SymbolData(signal.symbol);
 
         double valueToRisk = (maxRiskPerc / 100) * minBalance;
 
         debug(StringFormat("Balance :%f, Equity :%f, Risk :%f", accBalance, accEquity, valueToRisk));
-        debug(StringFormat("Tick (Value :%f, Size :%f), stopLossLevel(%d), Point:(%f)", tickValue, tickSize, stopLossLevel, point));
-        debug(StringFormat("Ask:%f , Bid: %f", Ask, Bid));
+        debug("Symbol :" + s.str());
 
-        debug(StringFormat("Spread (%f)Pips (Ask-Bid):%f", spreadPips, spreadPips * point));
-
-        if (Ask == 0 || Bid == 0|| tickValue ==0) { // CCYPAIR doesn't exists on the broker
-            warn ("Currrency pair is not supported on broker, Ask|Bid|TickValue ==0");
+        if (s.Ask == 0 || s.Bid == 0 || s.tickValue == 0) {  // CCYPAIR doesn't exists on the broker
+            warn("Currrency pair is not supported on broker, Ask|Bid|TickValue ==0");
             return 0;
-            }
+        }
 
         double lotSize = 0;
         if (signal.go == GO_LONG) {
             //Buy SL/TP calcuated based on Bid due to Spread
-            double buy_tp = NormalizeDouble(Bid + signal.TP * point, digit);
-            double buy_sl = NormalizeDouble(Bid - signal.SL * point, digit);
-            debug(StringFormat("BUY  TP(%f) > (%f) > SL(%f)", buy_tp, Ask, buy_sl));
+            double buy_tp = NormalizeDouble(s.Bid + signal.TP * s.point, s.digit);
+            double buy_sl = NormalizeDouble(s.Bid - signal.SL * s.point, s.digit);
+            debug(StringFormat("BUY  TP(%f) > (%f) > SL(%f)", buy_tp, s.Ask, buy_sl));
 
             lotSize = calculateLotSize(signal.symbol, valueToRisk, signal.SL, signal.TP, buy_sl);
         } else if (signal.go == GO_SHORT) {
             //Sell SL/TP calcuated based on Ask due to Spread
-            double sell_tp = NormalizeDouble(Ask - signal.TP * point, digit);
-            double sell_sl = NormalizeDouble(Ask + signal.SL * point, digit);
-            debug(StringFormat("SELL TP(%f) < (%f) < SL(%f)", sell_tp, Bid, sell_sl));
+            double sell_tp = NormalizeDouble(s.Ask - signal.TP * s.point, s.digit);
+            double sell_sl = NormalizeDouble(s.Ask + signal.SL * s.point, s.digit);
+            debug(StringFormat("SELL TP(%f) < (%f) < SL(%f)", sell_tp, s.Bid, sell_sl));
             lotSize = calculateLotSize(signal.symbol, valueToRisk, signal.SL, signal.TP, sell_sl);
         }
         return lotSize;

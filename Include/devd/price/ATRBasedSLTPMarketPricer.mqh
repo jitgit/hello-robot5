@@ -40,13 +40,13 @@ class ATRBasedSLTPMarketPricer {
 
             //SL = 2* atr & TP = 3 * SL; (1:3)
             if (signal.go == GO_LONG) {
-                signal.entry = Ask - (10 * point);  //Closes to ASK for a Pending order
+                signal.entry = Ask - (50 * point);  //Closes to ASK for a Pending order
                 signal.stopLoss = Ask - (itsScale * atrValue);
                 signal.takeProfit = Bid + (itsTakeProfitRatio * itsScale * atrValue);
             }
 
             if (signal.go == GO_SHORT) {
-                signal.entry = Bid + (10 * point);  //Closes to BID for a Pending order
+                signal.entry = Bid + (60 * point);  //Closes to BID for a Pending order
                 signal.stopLoss = Bid + (itsScale * atrValue);
                 signal.takeProfit = Ask - (itsTakeProfitRatio * itsScale * atrValue);
             }

@@ -12,8 +12,7 @@
 #include <devd/order/OrderManager.mqh>
 #include <devd/order/PositionOptimizer.mqh>
 #include <devd/price/EconomicEventPricer.mqh>
-#include <devd\trailingsl\SARTrailingStop.mqh>
-#include <devd\trailingsl\TrailingStop.mqh>
+#include <devd\trailingsl\ATRTrailingStop.mqh>
 
 int MAGIC_NUMBER = 007;
 int POSITION_OPTIMIZE_INTERVAL = 5;  //secs
@@ -21,8 +20,8 @@ long positionOptimizerTick = 0;
 
 OrderManager* orderManager = new OrderManager();
 //PositionOptimizer* positionOptimizer = new PositionOptimizer(100, 2, 10);
-SARTrailingStop tralingStop = new SARTrailingStop()
-    CArrayObj* economic_news;
+TrailingStop* tralingStop = new ATRTrailingStop();
+CArrayObj* economic_news;
 
 void add(EconomicEvent* event, string ccyPair) {
     int s = ArraySize(event.pairs);
@@ -55,11 +54,22 @@ EconomicEvent* build_NZ_CPI(string newsTime) {
     return NZ_CPI;
 }
 
+EconomicEvent* build_Oil_Inventories(string newsTime) {
+    EconomicEvent* OIL = new EconomicEvent(OIL_INVENTORIES, "OIL", 2, newsTime);
+    add(OIL, "WTI");
+    add(OIL, "BRENT");
+    return OIL;
+}
+
 CArrayObj* buildEcoEvents() {
     CArrayObj* events = new CArrayObj;
 
     EconomicEvent* NZ_IR = build_NZ_IR("2020-06-29 21:46:00");
-    events.Add(NZ_IR);
+    EconomicEvent* NZ_CPI = build_NZ_IR("2020-06-29 21:46:00");
+    EconomicEvent* OIL = build_Oil_Inventories("2020-07-01 17:56:40");
+    //events.Add(NZ_IR);
+    //events.Add(NZ_CPI);
+    events.Add(OIL);
     return events;
 }
 
@@ -76,10 +86,10 @@ void OnDeinit() {
 
 void OnTimer() {
     datetime localTime = TimeLocal();
-    //info(StringFormat("About to execute the events. Size(%d)", econmic_news.Total()));
     for (int i = 0; i < economic_news.Total(); i++) {
         EconomicEvent* e = economic_news.At(i);
-        datetime event_time = StringToTime(e.eventTime);
+        datetime event_time = e.eventTime;
+        //info(StringFormat("About to execute the events. Size(%d) , "+ localTime + " -> event_time: " + event_time,  economic_news.Total()));
         if (e.isOrderExecuted == false && event_time == localTime) {
             info("Submitting the Orders for " + e.str());
             for (int j = 0; j < ArraySize(e.pairs); j++) {
@@ -127,7 +137,7 @@ bool submitBuySellOrder(string symbol, int pipDisplacement) {
     //Calculating Lot Size
     double shortLotSize = riskManager.optimalLotSizeFrom(shortSignal, 2.0);
     //Try to book the order without SL & TP
-    bool sellSuccess = orderManager.bookStopOrder(shortSignal, shortLotSize, 0007);  //We don't want SL or TP
+    bool sellSuccess = orderManager.bookStopOrder(shortSignal, shortLotSize, MAGIC_NUMBER);  //We don't want SL or TP
 
     return sellSuccess && buySuccess;
 }
@@ -149,7 +159,7 @@ void OnTradeTransaction(const MqlTradeTransaction& trans,
     //TODO this must be read from result
     if (trans.type == TRADE_TRANSACTION_HISTORY_ADD && trans.order_state == ORDER_STATE_FILLED) {
         //If one buy/sell stop is filled we remove the other trade
-        info(StringFormat("######## Removing counter trade Symbol(%s), Type(%s), Order Id:" + trans.order, trans.symbol, EnumToString(trans.order_type)));
+        info(StringFormat("SERVER TIME %s,  Removing counter trade Symbol(%s), Type(%s), Order Id:" + trans.order, TimeToString(TimeTradeServer()), trans.symbol, EnumToString(trans.order_type)));
         ENUM_ORDER_TYPE toDeleteOrderType = trans.order_type == ORDER_TYPE_BUY_STOP ? ORDER_TYPE_SELL_STOP : ORDER_TYPE_BUY_STOP;
         orderManager.DeleteAllOrdersBy(trans.symbol, MAGIC_NUMBER, toDeleteOrderType, trans.order);
     }

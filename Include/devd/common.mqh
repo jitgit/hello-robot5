@@ -1,5 +1,7 @@
 #property strict
 
+#include <devd/beans/beans.mqh>
+
 double normalizeAsk(string symbol) {
     int digit = int(SymbolInfoInteger(symbol, SYMBOL_DIGITS));
     return NormalizeDouble(SymbolInfoDouble(symbol, SYMBOL_ASK), digit);
@@ -8,6 +10,15 @@ double normalizeAsk(string symbol) {
 double normalizeBid(string symbol) {
     int digit = int(SymbolInfoInteger(symbol, SYMBOL_DIGITS));
     return NormalizeDouble(SymbolInfoDouble(symbol, SYMBOL_BID), digit);
+}
+
+int getSpreadPips(string symbol) {
+    return SymbolInfoInteger(symbol, SYMBOL_SPREAD);
+}
+
+double getSpreadValue(string symbol) {
+    double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
+    return SymbolInfoInteger(symbol, SYMBOL_SPREAD) * point;
 }
 
 double norm(double d) {
@@ -236,3 +247,34 @@ string timFrameToString(ENUM_TIMEFRAMES tf) {
     }
     return str;
 }
+
+class SymbolData {
+   public:
+    string symbol;
+    double tickSize;
+    double tickValue;
+    int digit;
+    double point;
+    double Ask;
+    double Bid;
+    int spreadPips;
+    double spreadValue;
+    long stopLossLevel;
+
+    SymbolData(string sym) {
+        symbol = sym;
+        tickSize = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_SIZE);
+        tickValue = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE);
+        digit = SymbolInfoInteger(symbol, SYMBOL_DIGITS);
+        point = SymbolInfoDouble(symbol, SYMBOL_POINT);
+        Ask = normalizeAsk(symbol);
+        Bid = normalizeBid(symbol);
+        spreadPips = getSpreadPips(symbol);
+        spreadValue = Ask - Bid;
+        stopLossLevel = SymbolInfoInteger(symbol, SYMBOL_TRADE_STOPS_LEVEL);
+    }
+    string str() {
+        //StringFormat("%s Tick (Value :%f, Size :%f), stopLossLevel(%d), Point:(%f)", tickValue, tickSize, stopLossLevel, point));
+        return StringFormat("%s Ask:%f , Bid: %f, Point(%f), Digit(%d) Spread [(%d)Pips, %f]", symbol, Ask, Bid, point, digit, spreadPips, spreadValue);
+    }
+};

@@ -14,7 +14,7 @@ int OnInit() {
     ATRBasedSLTPMarketPricer *stopLoss = new ATRBasedSLTPMarketPricer(14, 2, 4);
     OrderManager *orderManager = new OrderManager();
     RiskManager riskManager = new RiskManager();
-    SignalResult *signal = new SignalResult("EURUSD", GO_LONG);
+    SignalResult *signal = new SignalResult("BRENT", GO_LONG);
 
     Print("=========================");
 
@@ -25,7 +25,7 @@ int OnInit() {
     double optimalLotSize = riskManager.optimalLotSizeFrom(signal, 2.0);
 
     //Try to book the order
-    bool success = orderManager.bookMarketOrder(signal, optimalLotSize, MAGIC_NUMBER);
+    bool success = orderManager.bookLimitOrder(signal, optimalLotSize, MAGIC_NUMBER);
 
     Print("============optimalLotSize: ", optimalLotSize);
     EventSetTimer(5);

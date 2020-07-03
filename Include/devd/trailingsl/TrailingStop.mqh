@@ -54,7 +54,7 @@ class TrailingStop {
                     double suggestedSL = NormalizeDouble(BuyStoploss(symbol, timeFrame), digits);
                     double minimal = SymbolInfoDouble(symbol, SYMBOL_BID) - point * SymbolInfoInteger(symbol, SYMBOL_TRADE_STOPS_LEVEL);
                     suggestedSL = MathMin(suggestedSL, minimal);  //Minimum allowed
-                    debug(StringFormat("ticket:%d %s (%s) suggestedSL(%f), currentSL(%f)", ticket, symbol, EnumToString(position), suggestedSL, currentSL));
+                    //debug(StringFormat("ticket:%d %s (%s) suggestedSL(%f), currentSL(%f)", ticket, symbol, EnumToString(position), suggestedSL, currentSL));
                     if (suggestedSL > currentSL) {
                         Modify(ticket, symbol, suggestedSL, currentTP, magicNumber);
                     }
@@ -69,7 +69,7 @@ class TrailingStop {
 
                     suggestedSL = MathMin(suggestedSL, minimal);  //Minimum allowed
 
-                    debug(StringFormat("ticket:%d %s (%s) suggestedSL(%f), currentSL(%f)", ticket, symbol, EnumToString(position), suggestedSL, currentSL));
+                    //debug(StringFormat("ticket:%d %s (%s) suggestedSL(%f), currentSL(%f)", ticket, symbol, EnumToString(position), suggestedSL, currentSL));
                     if (suggestedSL < currentSL || currentSL == 0) {
                         Modify(ticket, symbol, suggestedSL, currentTP, magicNumber);
                     }
