@@ -9,7 +9,7 @@ class SignalScanner {
         return result;
     }
 
-    virtual SignalResult* scan(string symbol, ENUM_TIMEFRAMES& timeFrames[]) {
+    virtual SignalResult* scan(string symbol, ENUM_TIMEFRAMES timeFrame) {
         SignalResult* result = new SignalResult(symbol);
         return result;
     }

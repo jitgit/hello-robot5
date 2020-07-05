@@ -8,7 +8,7 @@
 #include <devd/order/TradeManager.mqh>
 #include <devd/order/TradeOptimizer.mqh>
 #include <devd/price/ATRBasedSLTPMarketPricer.mqh>
-#include <devd/signal/rsi/RsiScan   ner.mqh>
+#include <devd/signal/rsi/RsiScanner.mqh>
 
 input int SELL_ORDER_MAX = 1;
 input int BUY_ORDER_MAX = 1;
