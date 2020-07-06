@@ -35,6 +35,7 @@ class TrailingStop {
     TrailingStop(string name) {
         itsName = name;
     }
+
     bool updateTrailingStop(int magicNumber, ENUM_TIMEFRAMES timeFrame = PERIOD_M5) {
         // PrintFormat("Trying Trailing Stop for %d .. PositionsTotal():%d", magicNumber, PositionsTotal());
         for (int i = 0; i < PositionsTotal(); i++) {
