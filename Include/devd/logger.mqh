@@ -1,11 +1,11 @@
 #property strict
-input bool LOG_DEBUG_LEVEL = true;
+input bool LOG_DEBUG_LEVEL = false;
 input bool LOG_INFO_LEVEL = true;
 input bool LOG_WARN_LEVEL = true;
 
 void debug(string s) {
     if (LOG_DEBUG_LEVEL) {
-        Print("DBUG - " + s);
+        //Print("DBUG - " + s);
     }
 }
 

@@ -26,7 +26,7 @@ class StochasticScanner : public SignalScanner {
         double signalBuffer[];
         ArraySetAsSeries(signalBuffer, true);
         ArraySetAsSeries(mainBuffer, true);
-        int handle = iStochastic(symbol, timeFrame, itsKPeriod, itsDPeriod, itsSlowing, MODE_SMA, STO_LOWHIGH);
+        int handle = iStochastic(symbol, timeFrame, itsKPeriod, itsDPeriod, itsSlowing, MODE_EMA, STO_LOWHIGH);
         GetStochasticBuffers(handle, 0, 2, mainBuffer, signalBuffer);
         double stocValue0 = NormalizeDouble(mainBuffer[0], 2);
         double signalValue0 = NormalizeDouble(signalBuffer[0], 2);
@@ -37,20 +37,20 @@ class StochasticScanner : public SignalScanner {
             if (stocValue0 < 70 && stocValue0 > 30) {
                 result.go = GO_NOTHING;
                 scanCandle = 0;
-            } else if (stocValue0 > 70 && stocValue1 > signalValue1 && stocValue0 < signalValue0) {
+            } else if (stocValue0 > 70 && stocValue1 > signalValue1 && stocValue0 <= signalValue0) {
                 result.go = GO_SHORT;
                 scanCandle = candleTime;
-            } else if (stocValue0 < 30 && stocValue1 < signalValue1 && stocValue0 > signalValue0) {
+            } else if (stocValue0 < 30 && stocValue1 < signalValue1 && stocValue0 >= signalValue0) {
                 result.go = GO_LONG;
                 scanCandle = candleTime;
             }
         } else {
         }
 
-        if (result.go != GO_NOTHING) {
-            debug(StringFormat("#%s", result.str()));
-            debug(StringFormat("%s %s Stoch(%d,%d,%d), S1(%f , %f), S0(%f , %f)", tsDate(candleTime), EnumToString(timeFrame), itsKPeriod, itsDPeriod, itsSlowing, stocValue1, signalValue1, stocValue0, signalValue0));
-        }
+        /*if (result.go != GO_NOTHING) {
+            info(StringFormat("#%s", result.str()));
+            info(StringFormat("%s %s Stoch(%d,%d,%d), S1(%f , %f), S0(%f , %f)", tsDate(candleTime), EnumToString(timeFrame), itsKPeriod, itsDPeriod, itsSlowing, stocValue1, signalValue1, stocValue0, signalValue0));
+        }*/
         return result;
     }
 
