@@ -140,4 +140,14 @@ class PositionOptimizer {
 
         return (0);
     }
+
+    int getPositionCount(string symbol, int magicNumber) {
+        int result = 0;
+        for (int i = 0; i < PositionsTotal(); i++) {
+            if (PositionGetInteger(POSITION_MAGIC) == magicNumber && symbol == PositionGetSymbol(i)) {
+                result++;
+            }
+        }
+        return result;
+    }
 };

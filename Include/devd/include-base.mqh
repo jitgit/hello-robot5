@@ -8,3 +8,6 @@
 #include <devd/common.mqh>
 #include <devd/logger.mqh>
 #include <devd/signal/SignalScanner.mqh>
+
+int ICHIMOKU_STOCH_MAGIC = 90;
+int ECONOMICS_EVENT_MAGIC = 007;

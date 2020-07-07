@@ -35,7 +35,7 @@ class SignalResult {
     }
 
     string str() {
-        return StringFormat("Signal %s - (GO: %s, entryPrice: %f, stopLoss(%d): %f, takeProfit(%d): %f)", symbol, EnumToString(go), entry, SL, stopLoss, TP, takeProfit);
+        return StringFormat("%s - (%s), entry(%f) stopLoss(%d): %f, takeProfit(%d): %f)", symbol, EnumToString(go), entry, SL, stopLoss, TP, takeProfit);
     }
 };
 
@@ -43,6 +43,7 @@ string EMPLOYMENT_CHANGE = "EMPLOYMENT_CHANGE";
 string IR = "IR";
 string CPI = "CPI";
 string OIL_INVENTORIES = "OIL_INVENTORIES";
+string PMI = "PMI";
 
 class EconomicEvent : public CObject {
    public:

@@ -109,8 +109,6 @@ void OnTimer() {
 
     positionOptimizerTick = (positionOptimizerTick + 1) % POSITION_OPTIMIZE_INTERVAL;
     if (positionOptimizerTick == POSITION_OPTIMIZE_INTERVAL - 1) {
-        //info(StringFormat("######### Trailing stop Position :%d ", positionOptimizerTick));
-        //positionOptimizer.trailingStop(MAGIC_NUMBER);
         tralingStop.updateTrailingStop(ECONOMICS_EVENT_MAGIC);
         positionOptimizerTick = 0;
     }
@@ -118,7 +116,6 @@ void OnTimer() {
 
 bool submitBuySellOrder(string symbol, int pipDisplacement) {
     EconomicEventPricer* newsPricer = new EconomicEventPricer();
-
     RiskManager riskManager = new RiskManager();
 
     info(StringFormat("========================= BUY (%s) =========================", symbol));

@@ -29,7 +29,7 @@ class StochasticKDCrossOverScanner : public SignalScanner {
         datetime ts[];
 
         ArraySetAsSeries(ts, true);
-        int handle = iStochastic(symbol, timeFrame, itsKPeriod, itsDPeriod, itsSlowing, MODE_EMA, STO_LOWHIGH);
+        int handle = iStochastic(symbol, timeFrame, itsKPeriod, itsDPeriod, itsSlowing, MODE_EMA, STO_CLOSECLOSE);
 
         CopyTime(symbol, timeFrame, 0, 3, ts);
         GetStochasticBuffers(handle, 0, 3, mainBuffer, signalBuffer);
@@ -38,14 +38,14 @@ class StochasticKDCrossOverScanner : public SignalScanner {
         double signalValue0 = signalBuffer[0];
         double stocValue1 = mainBuffer[1];
         double signalValue1 = signalBuffer[1];
-        if (scanCandle != candleTime || true) {  //|| timeFrame>PERIOD_M30) { //If the TF is smaller than M30 we don't want to send more repeatative signals
+        if (scanCandle != candleTime || true) {  //|| timeFrame>PERIOD_M30) { //TODO If the TF is smaller than M30 we don't want to send more repeatative signals
             if (stocValue0 < STOCH_UPPER_BOUND && stocValue0 > STOCH_LOWER_BOUND) {
                 result.go = GO_NOTHING;
                 scanCandle = 0;
-            } else if (stocValue0 >= STOCH_UPPER_BOUND && stocValue1 > signalValue1 && stocValue0 <= signalValue0 && stocValue0 < stocValue1) {
+            } else if (stocValue1 > signalValue1 && stocValue0 <= signalValue0 && stocValue0 < stocValue1) {
                 result.go = GO_SHORT;
                 scanCandle = candleTime;
-            } else if (stocValue0 <= STOCH_LOWER_BOUND && stocValue1 < signalValue1 && stocValue0 >= signalValue0 && stocValue0 > stocValue1) {
+            } else if (stocValue1 < signalValue1 && stocValue0 >= signalValue0 && stocValue0 > stocValue1) {
                 result.go = GO_LONG;
                 scanCandle = candleTime;
             }
@@ -60,7 +60,7 @@ class StochasticKDCrossOverScanner : public SignalScanner {
     }
 
     int magic() {
-        return 234;
+        return 0;
     };
 };
 
