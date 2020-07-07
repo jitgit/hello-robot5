@@ -5,7 +5,7 @@
 #include <devd/account-utils.mqh>
 #include <devd/include-base.mqh>
 #include <devd/order/OrderManager.mqh>
-#include <devd/order/TradeOptimizer.mqh>
+#include <devd/order/PositionOptimizer.mqh>
 #include <devd/signal/bb/BBSignalScanner.mqh>
 
 input int MAX_ORDER_THREADHOLD = 1;
@@ -27,9 +27,9 @@ void main() {
     OrderManager *orderManager = new OrderManager();
     AccountManager *accountManager = new AccountManager();
     RiskManager *riskManager = new RiskManager();
-    TradeOptimizer *ordeOptimizer = new TradeOptimizer();
+    PositionOptimizer *positionOptimizer = new PositionOptimizer();
 
-    int anyExistingOrders = orderManager.getTotalOrderByMagicNum(scanner.magic());
+    int anyExistingOrders = orderManager.getTotalOrderByMagicNum(_Symbol, scanner.magic());
     debug(StringFormat("Magic Number(%d), MaxOrder(%d), Exiting(%d)", scanner.magic(), MAX_ORDER_THREADHOLD, anyExistingOrders));
 
     if (anyExistingOrders >= MAX_ORDER_THREADHOLD) {
@@ -47,11 +47,11 @@ void main() {
             debug("Booking order: " + signal.str());
             bool isLong = signal.go == GO_LONG;
             double optimalLotSize = riskManager.optimalLotSize(isLong, SL, TP, MAX_RISK_PERCENTAGE);
-            orderManager.bookLimitOrder(isLong, signal.entry, signal.stopLoss, signal.takeProfit, optimalLotSize, scanner.magic());
+            orderManager.bookLimitOrder(_Symbol, isLong, signal.entry, signal.stopLoss, signal.takeProfit, optimalLotSize, scanner.magic());
         } else {
             debug("NO SIGNAL FROM SCAN RESULT." + signal.str());
         }
     }
     //Optimize TP on existing trades if any by this EA
-    //ordeOptimizer.optimizeTakeProfit(scanner.magicNumber(), orderIds, scanner.optimizedLongTP(), scanner.optimizedShortTP());   */
+    //positionOptimizer.optimizeTakeProfit(scanner.magicNumber(), orderIds, scanner.optimizedLongTP(), scanner.optimizedShortTP());   */
 }

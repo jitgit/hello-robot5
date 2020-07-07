@@ -21,11 +21,11 @@ class ATRBasedSLTPMarketPricer {
         itsTakeProfitRatio = takeProfitRatio;
     }
 
-    void addEntryStopLossAndTakeProfit(SignalResult &signal) {
+    void addEntryStopLossAndTakeProfit(SignalResult &signal, ENUM_TIMEFRAMES tf) {
         double stopLoss = 0;
         double takeProfit = 0;
-        double ATRValue[];                                      // Variable to store the value of ATR
-        int ATRHandle = iATR(signal.symbol, 0, itAtrMAPeriod);  // returns a handle for ATR
+        double ATRValue[];                                       // Variable to store the value of ATR
+        int ATRHandle = iATR(signal.symbol, tf, itAtrMAPeriod);  // returns a handle for ATR
         double Ask = normalizeAsk(signal.symbol);
         double Bid = normalizeBid(signal.symbol);
         info(StringFormat("Calculating SL for %s", signal.str()));

@@ -47,7 +47,7 @@ class TrailingStop {
                 ulong ticket = PositionGetTicket(i);
 
                 double currentSL = NormalizeDouble(PositionGetDouble(POSITION_SL), digits);
-                double currentTP = PositionGetDouble(POSITION_TP);
+                double currentTP = NormalizeDouble(PositionGetDouble(POSITION_TP), digits);
                 ENUM_POSITION_TYPE position = PositionGetInteger(POSITION_TYPE);
 
                 //PrintFormat("ticket:%d (%s), point(%f), digit(%f) (%s)", ticket, symbol, point, digits, EnumToString(position));
