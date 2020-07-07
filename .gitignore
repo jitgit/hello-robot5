@@ -14,6 +14,9 @@
 
 !/Profiles/*
 !/Profiles/Templates/devd/*.tpl
+!/Profiles/Templates/tester.tpl
+!/Profiles/Templates/default.tpl
+!/Profiles/Templates/debug.tpl
 
 !/Indicators/RSI/**
 Indicators/RSI/**/*.ex5
