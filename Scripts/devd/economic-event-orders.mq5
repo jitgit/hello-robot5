@@ -1,12 +1,3 @@
-//+------------------------------------------------------------------+
-//|                                                     devd-rci.mq5 |
-//|                                                             Devd |
-//|                                             https://www.devd.com |
-//+------------------------------------------------------------------+
-#property copyright "Devd"
-#property link "https://www.devd.com"
-#property version "1.00"
-
 #include <devd/acc/RiskManager.mqh>
 #include <devd/include-base.mqh>
 #include <devd/order/OrderManager.mqh>
@@ -14,7 +5,6 @@
 #include <devd/price/EconomicEventPricer.mqh>
 #include <devd\trailingsl\ATRTrailingStop.mqh>
 
-int MAGIC_NUMBER = 007;
 int POSITION_OPTIMIZE_INTERVAL = 5;  //secs
 long positionOptimizerTick = 0;
 
@@ -55,10 +45,18 @@ EconomicEvent* build_NZ_CPI(string newsTime) {
 }
 
 EconomicEvent* build_Oil_Inventories(string newsTime) {
-    EconomicEvent* OIL = new EconomicEvent(OIL_INVENTORIES, "OIL", 2, newsTime);
-    add(OIL, "WTI");
-    add(OIL, "BRENT");
-    return OIL;
+    EconomicEvent* e = new EconomicEvent(OIL_INVENTORIES, "OIL", 2, newsTime);
+    add(e, "WTI");
+    add(e, "BRENT");
+    return e;
+}
+EconomicEvent* build_CAD_Ivy_PMI(string newsTime) {
+    EconomicEvent* e = new EconomicEvent(PMI, "CAD", 2, newsTime);
+    add(e, "CADJPY");
+    add(e, "EURCAD");
+    add(e, "GBPCAD");
+    add(e, "CADCHF");
+    return e;
 }
 
 CArrayObj* buildEcoEvents() {
@@ -67,13 +65,16 @@ CArrayObj* buildEcoEvents() {
     EconomicEvent* NZ_IR = build_NZ_IR("2020-06-29 21:46:00");
     EconomicEvent* NZ_CPI = build_NZ_IR("2020-06-29 21:46:00");
     EconomicEvent* OIL = build_Oil_Inventories("2020-07-01 17:56:40");
+    EconomicEvent* CAD_IVEY = build_CAD_Ivy_PMI("2020-07-07 14:59:45");
     //events.Add(NZ_IR);
     //events.Add(NZ_CPI);
-    events.Add(OIL);
+    //events.Add(OIL);
+    events.Add(CAD_IVEY);
     return events;
 }
 
 int OnInit() {
+    Print("Starting the Economics EA ..");
     economic_news = buildEcoEvents();
 
     EventSetTimer(1);
@@ -110,7 +111,7 @@ void OnTimer() {
     if (positionOptimizerTick == POSITION_OPTIMIZE_INTERVAL - 1) {
         //info(StringFormat("######### Trailing stop Position :%d ", positionOptimizerTick));
         //positionOptimizer.trailingStop(MAGIC_NUMBER);
-        tralingStop.updateTrailingStop(MAGIC_NUMBER);
+        tralingStop.updateTrailingStop(ECONOMICS_EVENT_MAGIC);
         positionOptimizerTick = 0;
     }
 }
@@ -127,7 +128,7 @@ bool submitBuySellOrder(string symbol, int pipDisplacement) {
     //Calculating Lot Size
     double longLotSize = riskManager.optimalLotSizeFrom(longSignal, 2.0);
     //Try to book the order without SL & TP
-    bool buySuccess = orderManager.bookStopOrder(longSignal, longLotSize, MAGIC_NUMBER);  //We don't want SL or TP
+    bool buySuccess = orderManager.bookStopOrder(longSignal, longLotSize, ECONOMICS_EVENT_MAGIC);  //We don't want SL or TP
 
     info(StringFormat("========================= SELL (%s) =========================", symbol));
 
@@ -137,7 +138,7 @@ bool submitBuySellOrder(string symbol, int pipDisplacement) {
     //Calculating Lot Size
     double shortLotSize = riskManager.optimalLotSizeFrom(shortSignal, 2.0);
     //Try to book the order without SL & TP
-    bool sellSuccess = orderManager.bookStopOrder(shortSignal, shortLotSize, MAGIC_NUMBER);  //We don't want SL or TP
+    bool sellSuccess = orderManager.bookStopOrder(shortSignal, shortLotSize, ECONOMICS_EVENT_MAGIC);  //We don't want SL or TP
 
     return sellSuccess && buySuccess;
 }
@@ -161,6 +162,6 @@ void OnTradeTransaction(const MqlTradeTransaction& trans,
         //If one buy/sell stop is filled we remove the other trade
         info(StringFormat("SERVER TIME %s,  Removing counter trade Symbol(%s), Type(%s), Order Id:" + trans.order, TimeToString(TimeTradeServer()), trans.symbol, EnumToString(trans.order_type)));
         ENUM_ORDER_TYPE toDeleteOrderType = trans.order_type == ORDER_TYPE_BUY_STOP ? ORDER_TYPE_SELL_STOP : ORDER_TYPE_BUY_STOP;
-        orderManager.DeleteAllOrdersBy(trans.symbol, MAGIC_NUMBER, toDeleteOrderType, trans.order);
+        orderManager.DeleteAllOrdersBy(trans.symbol, ECONOMICS_EVENT_MAGIC, toDeleteOrderType, trans.order);
     }
 }
