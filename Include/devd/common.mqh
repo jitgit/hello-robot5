@@ -1,5 +1,6 @@
 #property strict
 
+#include <Trade\SymbolInfo.mqh>
 #include <devd/beans/beans.mqh>
 
 double normalizeAsk(string symbol) {
@@ -248,33 +249,54 @@ string timFrameToString(ENUM_TIMEFRAMES tf) {
     return str;
 }
 
-class SymbolData {
+class SymbolData : public CSymbolInfo {
    public:
-    string symbol;
+    //string symbol;
     double tickSize;
     double tickValue;
     int digit;
     double point;
-    double Ask;
-    double Bid;
+    double ask;
+    double bid;
     int spreadPips;
     double spreadValue;
     long stopLossLevel;
 
-    SymbolData(string sym) {
-        symbol = sym;
-        tickSize = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_SIZE);
-        tickValue = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE);
-        digit = SymbolInfoInteger(symbol, SYMBOL_DIGITS);
-        point = SymbolInfoDouble(symbol, SYMBOL_POINT);
-        Ask = normalizeAsk(symbol);
-        Bid = normalizeBid(symbol);
-        spreadPips = getSpreadPips(symbol);
-        spreadValue = Ask - Bid;
-        stopLossLevel = SymbolInfoInteger(symbol, SYMBOL_TRADE_STOPS_LEVEL);
+    SymbolData(string sym) : CSymbolInfo() {
+        this.Name(sym);
+        this.refreshRates();
+        tickSize = this.TickSize();
+        tickValue = this.TickValue();
+        digit = this.Digits();
+        point = this.Point();
+        ask = this.Ask();
+        bid = this.Bid();
+
+        spreadPips = this.Spread();
+        spreadValue = this.Ask() - this.Bid();
+        stopLossLevel = this.StopsLevel();
+    }
+
+    bool refreshRates(void) {
+        if (!this.RefreshRates()) {  //--- refresh rates
+            error("RefreshRates error");
+            return (false);
+        }
+
+        if (this.Ask() == 0 || this.Bid() == 0)  //--- protection against the return value of "zero"
+            return (false);
+        //---
+        return (true);
+    }
+
+    double digitAdjust() {
+        int digits_adjust = 1;
+        if (this.Digits() == 3 || this.Digits() == 5)
+            digits_adjust = 10;
+        return this.Point() * digits_adjust;
     }
     string str() {
         //StringFormat("%s Tick (Value :%f, Size :%f), stopLossLevel(%d), Point:(%f)", tickValue, tickSize, stopLossLevel, point));
-        return StringFormat("%s {Ask(%f) Bid(%f) Point(%f) Digit(%d) Spread [(%d)Pips, %f]}", symbol, Ask, Bid, point, digit, spreadPips, spreadValue);
+        return StringFormat("%s {Ask(%f) Bid(%f) Point(%f) Digit(%d) Spread [(%d)Pips, %f]}", this.Name(), ask, bid, point, digit, spreadPips, spreadValue);
     }
 };
