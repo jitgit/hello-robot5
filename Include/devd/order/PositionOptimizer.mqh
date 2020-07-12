@@ -193,7 +193,7 @@ class PositionOptimizer {
 
         CPositionInfo position;
         for (int i = PositionsTotal() - 1; i >= 0; i--)  // returns the number of current positions
-            if (position.SelectByIndex(i))             // selects the position by index for further access to its properties
+            if (position.SelectByIndex(i))               // selects the position by index for further access to its properties
                 if (position.Symbol() == s.Name() && position.Magic() == magicNumber) {
                     CTrade* m_trade = getTradeInstance(s, magicNumber);
                     if (position.PositionType() == pos_type) {
@@ -210,7 +210,7 @@ class PositionOptimizer {
     void CloseOppositePosition(const ENUM_POSITION_TYPE pos_type, SymbolData* s, int magicNumber) {
         CPositionInfo position;
         for (int i = PositionsTotal() - 1; i >= 0; i--)  // returns the number of current positions
-            if (position.SelectByIndex(i))             // selects the position by index for further access to its properties
+            if (position.SelectByIndex(i))               // selects the position by index for further access to its properties
                 if (position.Symbol() == s.Name() && position.Magic() == magicNumber) {
                     CTrade* m_trade = getTradeInstance(s, magicNumber);
                     if (position.PositionType() == pos_type) {
