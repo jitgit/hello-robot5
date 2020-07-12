@@ -27,7 +27,7 @@ class ATRBasedSLTPMarketPricer {
         double ATRValue[];                                       // Variable to store the value of ATR
         int ATRHandle = iATR(signal.symbol, tf, itAtrMAPeriod);  // returns a handle for ATR
         SymbolData* s = new SymbolData(signal.symbol);
-        info(StringFormat("Signal %s , Symbol:%s", signal.str(), s.str()));
+        debug(StringFormat("Signal %s , Symbol:%s", signal.str(), s.str()));
 
         ArraySetAsSeries(ATRValue, true);
         int atrCopyCount = CopyBuffer(ATRHandle, 0, 0, 1, ATRValue);
@@ -52,7 +52,7 @@ class ATRBasedSLTPMarketPricer {
         } else {
             warn(StringFormat("There was no signal (long/short) specified or atr copy failed copied(%d)", atrCopyCount));
         }
-        info(StringFormat("%s - UPDATED Signal %s", tsDate(TimeCurrent()), signal.str()));
+        debug(StringFormat("%s - UPDATED Signal %s", tsDate(TimeCurrent()), signal.str()));
     }
 };
 //+------------------------------------------------------------------+

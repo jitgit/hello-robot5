@@ -1,14 +1,9 @@
-//+------------------------------------------------------------------+
-//|                                                      ProjectName |
-//|                                      Copyright 2020, CompanyName |
-//|                                       http://www.companyname.net |
-//+------------------------------------------------------------------+
 
 #property strict
-#include <devd/include-base.mqh>
-//+------------------------------------------------------------------+
-//|                                                                  |
-//+------------------------------------------------------------------+
+#include <Expert\Money\MoneyFixedRisk.mqh>
+#include <Trade\AccountInfo.mqh>
+#include <devd\include-base.mqh>
+
 class RiskManager {
    protected:
     double itsRiskPercentage;
@@ -70,7 +65,7 @@ class RiskManager {
         debug(StringFormat("Balance :%f, Equity :%f, Risk :%f", accBalance, accEquity, valueToRisk));
         debug("Symbol :" + s.str());
 
-        if (s.Ask == 0 || s.Bid == 0 || s.tickValue == 0) {  // CCYPAIR doesn't exists on the broker
+        if (s.ask == 0 || s.bid == 0 || s.tickValue == 0) {  // CCYPAIR doesn't exists on the broker
             warn("Currrency pair is not supported on broker, Ask|Bid|TickValue ==0");
             return 0;
         }
@@ -78,16 +73,16 @@ class RiskManager {
         double lotSize = 0;
         if (signal.go == GO_LONG) {
             //Buy SL/TP calcuated based on Bid due to Spread
-            double buy_tp = NormalizeDouble(s.Bid + signal.TP * s.point, s.digit);
-            double buy_sl = NormalizeDouble(s.Bid - signal.SL * s.point, s.digit);
-            debug(StringFormat("BUY  TP(%f) > (%f) > SL(%f)", buy_tp, s.Ask, buy_sl));
+            double buy_tp = NormalizeDouble(s.bid + signal.TP * s.point, s.digit);
+            double buy_sl = NormalizeDouble(s.bid - signal.SL * s.point, s.digit);
+            debug(StringFormat("BUY  TP(%f) > (%f) > SL(%f)", buy_tp, s.ask, buy_sl));
 
             lotSize = calculateLotSize(signal.symbol, valueToRisk, signal.SL, signal.TP, buy_sl);
         } else if (signal.go == GO_SHORT) {
             //Sell SL/TP calcuated based on Ask due to Spread
-            double sell_tp = NormalizeDouble(s.Ask - signal.TP * s.point, s.digit);
-            double sell_sl = NormalizeDouble(s.Ask + signal.SL * s.point, s.digit);
-            debug(StringFormat("SELL TP(%f) < (%f) < SL(%f)", sell_tp, s.Bid, sell_sl));
+            double sell_tp = NormalizeDouble(s.ask - signal.TP * s.point, s.digit);
+            double sell_sl = NormalizeDouble(s.ask + signal.SL * s.point, s.digit);
+            debug(StringFormat("SELL TP(%f) < (%f) < SL(%f)", sell_tp, s.bid, sell_sl));
             lotSize = calculateLotSize(signal.symbol, valueToRisk, signal.SL, signal.TP, sell_sl);
         }
         return lotSize;
@@ -149,6 +144,32 @@ class RiskManager {
 
     double optimalLotSize(string symbol, double entryPrice, double stopLoss) {
         return optimalLotSize(symbol, itsRiskPercentage, entryPrice, stopLoss);
+    }
+
+    double lotSize(SymbolData* s, SignalResult* signal, ENUM_TIMEFRAMES tf) {
+        double result = 0.0;
+
+        CMoneyFixedRisk m_money;
+        CAccountInfo m_account;
+        if (!s.refreshRates()) {
+            Print("Error RefreshRates. Bid=", DoubleToString(s.Bid(), Digits()), ", Ask=", DoubleToString(s.Ask(), Digits()));
+            return 0.0;
+        }
+
+        double ExtStopLoss = signal.SL * s.point * s.digitAdjust();
+
+        if (!m_money.Init(GetPointer(s), tf, s.Point() * s.digitAdjust()))
+            return 0.0;
+        m_money.Percent(itsRiskPercentage);  // 10% risk
+        if (signal.go == GO_LONG) {
+            result = m_money.CheckOpenLong(s.Ask(), signal.stopLoss);
+        } else if (signal.go == GO_SHORT) {
+            result = m_money.CheckOpenShort(s.Bid(), signal.stopLoss);
+        }
+        result = MathRoundDown(result, 0.01);
+        //check_open_long_lot=m_money.CheckOpenLong(m_symbol.Ask(),sl);
+        debug(StringFormat("Lots(%f), Balance(%f), Equity(%f), FreeMargin(%f)", result, m_account.Balance(), m_account.Equity(), m_account.FreeMargin()));
+        return result;
     }
 };
 //+------------------------------------------------------------------+

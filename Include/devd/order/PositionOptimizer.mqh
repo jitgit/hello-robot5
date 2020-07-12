@@ -34,10 +34,10 @@ class PositionOptimizer {
     // returns the number of open positions
     int getPositionCount(string symbol, int magicNumber) {
         int result = 0;
-        CPositionInfo m_position;
+        CPositionInfo position;
         for (int i = PositionsTotal() - 1; i >= 0; i--) {
-            if (m_position.SelectByIndex(i))
-                if (m_position.Symbol() == symbol && m_position.Magic() == magicNumber)
+            if (position.SelectByIndex(i))
+                if (position.Symbol() == symbol && position.Magic() == magicNumber)
                     result++;
         }
         return result;
@@ -191,30 +191,31 @@ class PositionOptimizer {
             return;
         }
 
-        CPositionInfo m_position;
+        CPositionInfo position;
         for (int i = PositionsTotal() - 1; i >= 0; i--)  // returns the number of current positions
-            if (m_position.SelectByIndex(i))             // selects the position by index for further access to its properties
-                if (m_position.Symbol() == s.Name() && m_position.Magic() == magicNumber) {
+            if (position.SelectByIndex(i))             // selects the position by index for further access to its properties
+                if (position.Symbol() == s.Name() && position.Magic() == magicNumber) {
                     CTrade* m_trade = getTradeInstance(s, magicNumber);
-                    if (m_position.PositionType() == pos_type) {
-                        if (m_position.PositionType() == POSITION_TYPE_BUY)
-                            if (MathAbs(s.Bid() - m_position.PriceOpen()) >= stop_level)
-                                m_trade.PositionClose(m_position.Ticket());  // close a position by the specified symbol
-                        if (m_position.PositionType() == POSITION_TYPE_SELL)
-                            if (MathAbs(s.Ask() - m_position.PriceOpen()) >= stop_level)
-                                m_trade.PositionClose(m_position.Ticket());  // close a position by the specified symbol
+                    if (position.PositionType() == pos_type) {
+                        if (position.PositionType() == POSITION_TYPE_BUY)
+                            if (MathAbs(s.Bid() - position.PriceOpen()) >= stop_level)
+                                m_trade.PositionClose(position.Ticket());  // close a position by the specified symbol
+                        if (position.PositionType() == POSITION_TYPE_SELL)
+                            if (MathAbs(s.Ask() - position.PriceOpen()) >= stop_level)
+                                m_trade.PositionClose(position.Ticket());  // close a position by the specified symbol
                     }
                 }
     }
 
-    void ClosePending(const ENUM_POSITION_TYPE pos_type, SymbolData* s, int magicNumber) {
-        CPositionInfo m_position;
+    void CloseOppositePosition(const ENUM_POSITION_TYPE pos_type, SymbolData* s, int magicNumber) {
+        CPositionInfo position;
         for (int i = PositionsTotal() - 1; i >= 0; i--)  // returns the number of current positions
-            if (m_position.SelectByIndex(i))             // selects the position by index for further access to its properties
-                if (m_position.Symbol() == s.Name() && m_position.Magic() == magicNumber) {
+            if (position.SelectByIndex(i))             // selects the position by index for further access to its properties
+                if (position.Symbol() == s.Name() && position.Magic() == magicNumber) {
                     CTrade* m_trade = getTradeInstance(s, magicNumber);
-                    if (m_position.PositionType() == pos_type) {
-                        m_trade.OrderDelete(m_position.Ticket());  // close a position by the specified symbol
+                    if (position.PositionType() == pos_type) {
+                        info("Closing the position as opposite signal came");
+                        m_trade.PositionClose(position.Ticket());  // close a position by the specified symbol
                     }
                 }
     }
@@ -237,10 +238,10 @@ class PositionOptimizer {
                     CTrade* m_trade = getTradeInstance(s, magicNumber);
                     double openPriceDistance = -1;
                     if (order.OrderType() == ORDER_TYPE_BUY_LIMIT && order_type == ORDER_TYPE_BUY_LIMIT) {
-                        double openPriceDistance = MathAbs(s.Ask() - order.PriceOpen());
+                        openPriceDistance = MathAbs(s.Ask() - op);
                     }
                     if (order.OrderType() == ORDER_TYPE_SELL_LIMIT && order_type == ORDER_TYPE_SELL_LIMIT) {
-                        double openPriceDistance = MathAbs(s.Bid() - order.PriceOpen());
+                        openPriceDistance = MathAbs(s.Bid() - op);
                     }
                     info(StringFormat("ticket: %d , %s %s ,openPriceDistance(%f)  >= (%f) maxDiffInPrice", ticket, EnumToString(order_type), EnumToString(order.OrderType()), openPriceDistance, maxDiffInPrice));
 
