@@ -1,6 +1,6 @@
 #property strict
 
-#include <Trade\SymbolInfo.mqh>
+#include <Trade/SymbolInfo.mqh>
 #include <devd/beans/beans.mqh>
 
 double normalizeAsk(string symbol) {
