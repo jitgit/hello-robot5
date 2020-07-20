@@ -22,6 +22,9 @@ int bearishReversalIndexes[];
 const int BEARISH_INDEX = 0;
 const int BULLISH_INDEX = 1;
 
+int LAST_CANDLE = 100;
+const int ARRAOW_DISTANCE_FROM_CANDLE=20;
+
 int OnInit() {
     Print("===================================================== ON INIT");    
     //--- name for indicator label
@@ -32,8 +35,8 @@ int OnInit() {
     SetIndexBuffer(BULLISH_INDEX, bullish_buffer, INDICATOR_DATA);
 
     //--- sets indicator shift (Displacement from price value)
-    PlotIndexSetInteger(BEARISH_INDEX, PLOT_ARROW_SHIFT, -20);
-    PlotIndexSetInteger(BULLISH_INDEX, PLOT_ARROW_SHIFT, 20);
+    PlotIndexSetInteger(BEARISH_INDEX, PLOT_ARROW_SHIFT, -ARRAOW_DISTANCE_FROM_CANDLE);
+    PlotIndexSetInteger(BULLISH_INDEX, PLOT_ARROW_SHIFT, ARRAOW_DISTANCE_FROM_CANDLE);
 
     //--- Empty value for building for which there is no rendering
     for (int i = 0; i < indicator_buffers; i++)
@@ -55,8 +58,8 @@ int OnInit() {
     PlotIndexSetInteger(BULLISH_INDEX, PLOT_DRAW_TYPE, DRAW_ARROW);
 
     //The code to draw - https://www.mql5.com/en/docs/constants/objectconstants/wingdings
-    PlotIndexSetInteger(BEARISH_INDEX, PLOT_ARROW, 218);
-    PlotIndexSetInteger(BULLISH_INDEX, PLOT_ARROW, 217);
+    PlotIndexSetInteger(BEARISH_INDEX, PLOT_ARROW, 234);
+    PlotIndexSetInteger(BULLISH_INDEX, PLOT_ARROW, 233);
 
     PlotIndexSetInteger(BEARISH_INDEX, PLOT_LINE_COLOR, clrRed);
     PlotIndexSetInteger(BULLISH_INDEX, PLOT_LINE_COLOR, clrGreenYellow);
@@ -70,6 +73,8 @@ void ZeroIndicatorBuffers() {
     ArrayInitialize(bearish_buffer, 0);
     ArrayInitialize(bullish_buffer, 0);
 }
+
+
 
 //+------------------------------------------------------------------+
 //| Custom indicator iteration function                              |
@@ -85,15 +90,15 @@ int OnCalculate(const int rates_total,
                 const long &volume[],
                 const int &spread[])  // array, at which the indicator will be calculated;)
 {
-    //ArraySetAsSeries(time, true);
-    //ArraySetAsSeries(high, true);
-    //ArraySetAsSeries(low, true);
+    ArraySetAsSeries(time, true);
+    ArraySetAsSeries(high, true);
+    ArraySetAsSeries(low, true);
 
-    //ArraySetAsSeries(bearish_buffer, true);
-    //ArraySetAsSeries(bullish_buffer, true);
+    ArraySetAsSeries(bearish_buffer, true);
+    ArraySetAsSeries(bullish_buffer, true);
     ZeroIndicatorBuffers();
-    
-    for (int i = 0; i < rates_total; i++) {
+    //Print("rates_total " + rates_total);
+    for (int i = 0; i < LAST_CANDLE; i++) {
         if (i % 6 == 0) {
             bearish_buffer[i] = high[i];            
         }else{
