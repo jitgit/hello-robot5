@@ -96,10 +96,12 @@ int OnCalculate(const int rates_total,
 
     ArraySetAsSeries(bearish_buffer, true);
     ArraySetAsSeries(bullish_buffer, true);
-    ZeroIndicatorBuffers();
-    //Print("rates_total " + rates_total);
-    for (int i = 0; i < LAST_CANDLE; i++) {
-        if (i % 6 == 0) {
+    //ZeroIndicatorBuffers();
+    if(rates_total < LAST_CANDLE) return 0;
+    int toCount = (int)MathMin(rates_total, rates_total - prev_calculated + LAST_CANDLE);
+    //PrintFormat("bearish_buffer: %d , bullish_buffer: %d, toCount:%d ", ArraySize(bearish_buffer) , ArraySize(bullish_buffer),toCount);
+    for (int i = 0; i < toCount; i++) {
+        if (rates_total % 6 == 0) {
             bearish_buffer[i] = high[i];            
         }else{
             bullish_buffer[i] = low[i];
