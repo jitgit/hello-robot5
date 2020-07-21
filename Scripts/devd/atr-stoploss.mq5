@@ -18,7 +18,7 @@ RiskManager* riskManager = new RiskManager();
     double optimalLotSize = riskManager.optimalLotSizeFrom(signal, 2.0);
 
     //Try to book the order
-    bool success = orderManager.bookLimitOrder(signal, optimalLotSize, 0007);
+    bool success = orderManager.bookMarketOrder(signal, optimalLotSize, 0007);
 
     Print("============optimalLotSize: ", optimalLotSize);
 }

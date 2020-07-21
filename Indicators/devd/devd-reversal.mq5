@@ -1,4 +1,6 @@
 
+#include <devd/include-base.mqh>
+#include <devd/indicator-buffers.mqh>
 
 #property indicator_chart_window
 #property indicator_buffers 2
@@ -14,9 +16,6 @@ input int InpShift = 0;  // Indicator's shift
 
 double buffer0[];
 double buffer1[];
-
-#include <devd/common.mqh>
-#include <devd/indicator-buffers.mqh>
 
 input string s0 = "-------------------------------------------";  //REVERSAL settings
 input int LOOK_BACK_CANDLES = 1;
@@ -117,18 +116,18 @@ int OnCalculate(const int rates_total,
     ArraySetAsSeries(high, true);
     ArraySetAsSeries(low, true);
 
-    //ArraySetAsSeries(buffer0, true);
-    //ArraySetAsSeries(buffer1, true);
+    ArraySetAsSeries(buffer0, true);
+    ArraySetAsSeries(buffer1, true);
 
     //PrintFormat("Current time :%s",tsDate(TimeCurrent()));
     findReversal(time);
 
-    for (int i = 0; i < rates_total; i++) {
+    /*for (int i = 0; i < rates_total; i++) {
         if (i % 9 == 0) {
-            // buffer0[i] = high[i];
-            // buffer1[i] = low[i];
+            buffer0[i] = high[i];
+            buffer1[i] = low[i];
         }
-    }
+    }*/
 
     for (int i = 0; i < ArraySize(bearishReversalIndexes); i++) {
         int stocIndex = bearishReversalIndexes[i];
@@ -155,8 +154,8 @@ void findReversal(const datetime &time[]) {
     double stochSignalBuffer[];
     GetStochasticBuffers(stochasticHandle, 0, LOOK_BACK_CANDLES + STOC_RANGE_AROUND_MACD, stochMainBuffer, stochSignalBuffer);
 
-    //printArrayInfo(macdMainBuffer, "macdMainBuffer");
-    //printArrayInfo(stochMainBuffer, "stochMainBuffer");
+    //printArrayInfo(macdMainBuffer, "macdMainBuffer",true);
+    //printArrayInfo(stochMainBuffer, "stochMainBuffer",true);
 
     int macdCrossAboveIndexes[];
     int macdCrossBelowIndexes[];
@@ -176,34 +175,34 @@ void findReversal(const datetime &time[]) {
     }
 
     if (ArraySize(macdCrossAboveIndexes) > 0 || ArraySize(macdCrossBelowIndexes) > 0)
-        PrintFormat("macdCrossAbove(%d) ,macdCrossBelow(%d)", ArraySize(macdCrossAboveIndexes), ArraySize(macdCrossBelowIndexes));
+        info(StringFormat("macdCrossAbove(%d) ,macdCrossBelow(%d)", ArraySize(macdCrossAboveIndexes), ArraySize(macdCrossBelowIndexes)));
 
     if (ArraySize(macdCrossAboveIndexes) > 0)
-        PrintFormat("########################### MACD Cross ABOVE : %d", ArraySize(macdCrossAboveIndexes));
+        info(StringFormat("########################### MACD Cross ABOVE : %d", ArraySize(macdCrossAboveIndexes)));
 
     for (int i = 0; i < ArraySize(macdCrossAboveIndexes); i++) {
         int macdIndex = macdCrossAboveIndexes[i];
-        PrintFormat("    %d. MACD Index(%d)%s = %f", i, macdIndex, tsDate(time[macdIndex]), macdMainBuffer[macdIndex]);
+        debug(StringFormat("    %d. MACD Index(%d)%s = %f", i, macdIndex, tsDate(time[macdIndex]), macdMainBuffer[macdIndex]));
         for (int j = STOC_RANGE_AROUND_MACD - 1; j >= -STOC_RANGE_AROUND_MACD; j--) {
             int stocIndex = MathMax(macdIndex + j, 0);
-            //PrintFormat("stochMainBuffer: %d ,time:%d, %d = %f", ArraySize(stochMainBuffer), ArraySize(time), stocIndex, stochMainBuffer[stocIndex]);
+            debug(StringFormat("stochMainBuffer: %d ,time:%d, %d = %f", ArraySize(stochMainBuffer), ArraySize(time), stocIndex, stochMainBuffer[stocIndex]));
             if (stochMainBuffer[stocIndex] >= STOC_OVER_BOUGHT_LIMIT) {
-                PrintFormat("---> %d. Stoc Index(%d)%s = %f", j, stocIndex, tsDate(time[stocIndex]), stochMainBuffer[stocIndex]);
+                debug(StringFormat("---> %d. Stoc Index(%d)%s = %f", j, stocIndex, tsDate(time[stocIndex]), stochMainBuffer[stocIndex]));
                 addElement(bearishReversalIndexes, macdIndex);
                 break;
             }
         }
     }
     if (ArraySize(macdCrossBelowIndexes) > 0)
-        PrintFormat("########################### MACD Cross BELOW : %d", ArraySize(macdCrossBelowIndexes));
+        debug(StringFormat("########################### MACD Cross BELOW : %d", ArraySize(macdCrossBelowIndexes)));
     for (int i = 0; i < ArraySize(macdCrossBelowIndexes); i++) {
         int macdIndex = macdCrossBelowIndexes[i];
-        PrintFormat("    %d. MACD Index(%d)%s = %f", i, macdIndex, tsDate(time[macdIndex]), macdMainBuffer[macdIndex]);
+        debug(StringFormat("    %d. MACD Index(%d)%s = %f", i, macdIndex, tsDate(time[macdIndex]), macdMainBuffer[macdIndex]));
         for (int j = STOC_RANGE_AROUND_MACD - 1; j >= -STOC_RANGE_AROUND_MACD; j--) {
             int stocIndex = MathMax(macdIndex + j, 0);
             //PrintFormat("stochMainBuffer: %d , %d = %f", ArraySize(stochMainBuffer), stocIndex, stochMainBuffer[stocIndex]);
             if (stochMainBuffer[stocIndex] <= STOC_OVER_SOLD_LIMIT) {
-                PrintFormat("---> %d. Stoc Index(%d)%s = %f", j, stocIndex, tsDate(time[stocIndex]), stochMainBuffer[stocIndex]);
+                debug(StringFormat("---> %d. Stoc Index(%d)%s = %f", j, stocIndex, tsDate(time[stocIndex]), stochMainBuffer[stocIndex]));
                 addElement(bullishReversalIndexes, macdIndex);
                 break;
             }
